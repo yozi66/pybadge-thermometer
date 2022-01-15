@@ -32,6 +32,7 @@ uint32_t PX_YELLOW = arcada.pixels.Color(1,1,0);
 uint32_t PX_GREEN = arcada.pixels.Color(0,1,0);
 uint32_t PX_CYAN = arcada.pixels.Color(0,1,1);
 uint32_t PX_BLUE = arcada.pixels.Color(0,0,1);
+uint32_t PX_BLACK = arcada.pixels.Color(0,0,0);
 
 //---- data to display ----
 int countdown = -1;
@@ -71,7 +72,8 @@ void printTemperature() {
 }
 
 void setup() {
-  //while (!Serial);
+  // while (!Serial);
+  Serial.begin(115200);
 
   Serial.println("Hello! Arcada PyGamer test");
   if (!arcada.arcadaBegin()) {
@@ -195,11 +197,18 @@ void loop() {
   arcada.display->printf("led:%2d", led_brightness);
 
   // LEDs
-  arcada.pixels.setPixelColor(0, PX_BLUE * led_brightness_table[led_brightness]);
-  arcada.pixels.setPixelColor(1, PX_CYAN * led_brightness_table[led_brightness]);
-  arcada.pixels.setPixelColor(2, PX_GREEN * led_brightness_table[led_brightness]);
-  arcada.pixels.setPixelColor(3, PX_YELLOW * led_brightness_table[led_brightness]);
-  arcada.pixels.setPixelColor(4, PX_RED * led_brightness_table[led_brightness]);
+  float delta = avgTemp.temp_disp - t_set;
+  uint32_t color = (delta > 0 ? PX_RED : PX_BLUE) * led_brightness_table[led_brightness];
+  int count = delta / 0.499;
+  if (count < 0) {
+    count = -count;
+  }
+  Serial.printf("delta: %f, count: %d\n", delta, count);
+  arcada.pixels.setPixelColor(2, count > 0 ? color : PX_BLACK);
+  arcada.pixels.setPixelColor(3, count > 1 ? color : PX_BLACK);
+  arcada.pixels.setPixelColor(1, count > 2 ? color : PX_BLACK);
+  arcada.pixels.setPixelColor(4, count > 3 ? color : PX_BLACK);
+  arcada.pixels.setPixelColor(0, count > 4 ? color : PX_BLACK);
   arcada.pixels.show();
 
   if (playsound) {
