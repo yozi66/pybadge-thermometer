@@ -61,10 +61,10 @@ void timercallback() {
 //---- printTemperature ----
 void printTemperature() {
   avgTemp.setTemp(ds18b20.getTempC(oneWire_addr));
-  arcada.display->fillRect(0, 56, 128, 40, ARCADA_BLACK);
+  // arcada.display->fillRect(0, 56, 128, 40, ARCADA_BLACK);
   arcada.display->setCursor(12, 56);
   arcada.display->setTextSize(4);
-  arcada.display->print(avgTemp.temp_disp, 1);
+  arcada.display->printf("%4.1f", avgTemp.temp_disp);
   arcada.display->setTextSize(1);
   arcada.display->print("\xF8" "C");
   ds18b20.requestTemperatures();
@@ -83,7 +83,7 @@ void setup() {
 
   for (int i=0; i<BR_SIZE; i++) {
     arcada.setBacklight(brightness_table[i]);
-    delay(100);
+    delay(10);
   }
   arcada.display->fillScreen(ARCADA_BLACK);
 
@@ -104,8 +104,8 @@ void setup() {
     delay(750);
     avgTemp.setTemp(ds18b20.getTempC(oneWire_addr));
   }
-  printTemperature();
-  delay(1500);
+  // printTemperature();
+  // delay(1500);
   arcada.timerCallback(1 /* Hz */, timercallback);
   arcada.display->fillScreen(ARCADA_BLACK);
 }
@@ -149,45 +149,44 @@ void loop() {
   arcada.setBacklight(brightness_table[lcd_brightness]);
 
   // first line
-  arcada.display->fillRect(0, 0, 128, 16, ARCADA_BLACK);
-  arcada.display->setTextColor(ARCADA_GREEN);
+  // arcada.display->fillRect(0, 0, 128, 16, ARCADA_BLACK);
+  arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
   arcada.display->setCursor(0, 4);
   if (countdown >= 0) {
     arcada.display->printf("%3d", countdown);
     arcada.display->print("s");
   } else {
-    arcada.display->print("OK");
+    arcada.display->print("OK  ");
   }
-  arcada.display->setCursor(52, 4);
-  arcada.display->print(t_set);
-  arcada.display->print("\xF8" "C");
+  arcada.display->setCursor(46, 4);
+  arcada.display->printf("%3d" "\xF8" "C", t_set);
   // Read battery
   arcada.display->setCursor(96, 4);
   float vbat = arcada.readBatterySensor();
   arcada.display->print(vbat); arcada.display->println("V");
 
   // upper darkgreen row
-  arcada.display->fillRect(0, 22, 128, 10, ARCADA_BLACK);
-  arcada.display->setTextColor(ARCADA_DARKGREEN);
+  // arcada.display->fillRect(0, 22, 128, 10, ARCADA_BLACK);
+  arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
   // current temperature
-  arcada.display->setCursor(52, 22);
-  arcada.display->print(avgTemp.temp_curr, 2);
+  arcada.display->setCursor(40, 22);
+  arcada.display->printf("%7.2f", avgTemp.temp_curr);
 
   // lower darkgreen row
-  arcada.display->fillRect(0, 126, 128, 10, ARCADA_BLACK);
-  arcada.display->setTextColor(ARCADA_DARKGREEN);
+  // arcada.display->fillRect(0, 126, 128, 10, ARCADA_BLACK);
+  arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
   // Read light sensor
   arcada.display->setCursor(0, 126);
-  arcada.display->printf("L%d", arcada.readLightSensor());
+  arcada.display->printf("L%-4d", arcada.readLightSensor());
   // joystick
   arcada.display->setCursor(40, 126);
-  arcada.display->printf("x:%d", x);
+  arcada.display->printf("x:%-4d", x);
   arcada.display->setCursor(90, 126);
-  arcada.display->printf("y:%d", y);
+  arcada.display->printf("y:%-4d", y);
 
   // last row
-  arcada.display->fillRect(0, 148, 128, 10, ARCADA_BLACK);
-  arcada.display->setTextColor(ARCADA_GREEN);
+  // arcada.display->fillRect(0, 148, 128, 10, ARCADA_BLACK);
+  arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
   arcada.display->setCursor(0, 148);
   arcada.display->printf("%3ds", intervals[time_interval]);
   arcada.display->setCursor(40, 148);
