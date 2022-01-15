@@ -49,24 +49,19 @@ int intervals[INTERVALS_SIZE] = {5, 15, 30, 60, 120, 180, 300};
 //---- timer callback ----
 // Check the timer callback, this function is called every second!
 // volatile uint16_t milliseconds = 0;
-bool flag = true;
+volatile bool flag = true;
 void timercallback() {
-  if (flag) {
-    analogWrite(13, 1); // weak red light on the LED
-  } else {
-    analogWrite(13, 0); // LED OFF
-  }
-  flag = ! flag;
+  analogWrite(13, 0); // LED OFF
   if (countdown > 0) {
     countdown--;
   }
+  flag = false;
 }
 
 //---- printTemperature ----
 void printTemperature() {
   avgTemp.setTemp(ds18b20.getTempC(oneWire_addr));
-  // arcada.display->fillRect(0, 56, 128, 40, ARCADA_BLACK);
-  arcada.display->setCursor(12, 56);
+  arcada.display->setCursor(12, 48);
   arcada.display->setTextSize(4);
   arcada.display->printf("%4.1f", avgTemp.temp_disp);
   arcada.display->setTextSize(1);
@@ -122,6 +117,9 @@ void processInput(int x, int y) {
   }
   if (buttons & ARCADA_BUTTONMASK_B && time_interval > 0) {
     time_interval--;
+    if (intervals[time_interval] < countdown) {
+      countdown = intervals[time_interval];
+    }
   }
   if (buttons & ARCADA_BUTTONMASK_START) {
     t_set++;
@@ -146,6 +144,8 @@ void processInput(int x, int y) {
 
 void loop() {
   // delay(100);  // add some delay so our screen doesnt flicker
+  while(flag);
+  flag = true;
   bool playsound = false;
   int x = arcada.readJoystickX();
   int y = arcada.readJoystickY();
@@ -154,43 +154,42 @@ void loop() {
   arcada.setBacklight(brightness_table[lcd_brightness]);
 
   // first line
-  // arcada.display->fillRect(0, 0, 128, 16, ARCADA_BLACK);
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
   arcada.display->setCursor(0, 4);
-  if (countdown >= 0) {
-    arcada.display->printf("%3d", countdown);
-    arcada.display->print("s");
-  } else {
-    arcada.display->print("OK  ");
-  }
-  arcada.display->setCursor(46, 4);
   arcada.display->printf("%3d" "\xF8" "C", t_set);
+  // current temp
+  arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
+  arcada.display->setCursor(36, 4);
+  arcada.display->printf("%7.2f", avgTemp.temp_curr);
   // Read battery
+  arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
   arcada.display->setCursor(96, 4);
   float vbat = arcada.readBatterySensor();
   arcada.display->print(vbat); arcada.display->println("V");
 
-  // upper darkgreen row
-  // arcada.display->fillRect(0, 22, 128, 10, ARCADA_BLACK);
-  arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
-  // current temperature
-  arcada.display->setCursor(40, 22);
-  arcada.display->printf("%7.2f", avgTemp.temp_curr);
+  // countdown
+  arcada.display->setCursor(48, 96);
+  arcada.display->setTextSize(2);
+  if (countdown < 0) {
+    arcada.display->print("   ");
+  } else {
+    arcada.display->setTextColor(ARCADA_YELLOW, ARCADA_BLACK);
+    arcada.display->printf("%3d", countdown);
+  }
+  arcada.display->setTextSize(1);
 
   // lower darkgreen row
-  // arcada.display->fillRect(0, 126, 128, 10, ARCADA_BLACK);
   arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
   // Read light sensor
-  arcada.display->setCursor(0, 126);
+  arcada.display->setCursor(0, 128);
   arcada.display->printf("L%-4d", arcada.readLightSensor());
   // joystick
-  arcada.display->setCursor(40, 126);
+  arcada.display->setCursor(40, 128);
   arcada.display->printf("x:%-4d", x);
-  arcada.display->setCursor(90, 126);
+  arcada.display->setCursor(90, 128);
   arcada.display->printf("y:%-4d", y);
 
   // last row
-  // arcada.display->fillRect(0, 148, 128, 10, ARCADA_BLACK);
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
   arcada.display->setCursor(0, 148);
   arcada.display->printf("%3ds", intervals[time_interval]);
@@ -221,6 +220,7 @@ void loop() {
     playsound = true;
   }
 
+  analogWrite(13, 1); // weak red light on the LED
   if (playsound) {
     arcada.enableSpeaker(true);
     play_tune(audio, sizeof(audio));
