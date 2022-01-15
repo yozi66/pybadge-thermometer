@@ -35,16 +35,16 @@ uint32_t PX_BLUE = arcada.pixels.Color(0,0,1);
 uint32_t PX_BLACK = arcada.pixels.Color(0,0,0);
 
 //---- data to display ----
-int countdown = -1;
+volatile int countdown = -1;
 int t_set = 21;
 AverageTemp avgTemp;
-int time_interval = 1;
+int time_interval = 3;
 int lcd_brightness = 9;
 int led_brightness = 9;
 
 //---- timing ---
-#define INTERVALS_SIZE 5
-int intervals[INTERVALS_SIZE] = {30, 60, 120, 180, 300};
+#define INTERVALS_SIZE 7
+int intervals[INTERVALS_SIZE] = {5, 15, 30, 60, 120, 180, 300};
 
 //---- timer callback ----
 // Check the timer callback, this function is called every second!
@@ -57,6 +57,9 @@ void timercallback() {
     analogWrite(13, 0); // LED OFF
   }
   flag = ! flag;
+  if (countdown > 0) {
+    countdown--;
+  }
 }
 
 //---- printTemperature ----
@@ -211,6 +214,13 @@ void loop() {
   arcada.pixels.setPixelColor(0, count > 4 ? color : PX_BLACK);
   arcada.pixels.show();
 
+  if (count == 0) {
+    countdown = -1;
+  } else if (countdown <= 0) {
+    countdown = intervals[time_interval];
+    playsound = true;
+  }
+
   if (playsound) {
     arcada.enableSpeaker(true);
     play_tune(audio, sizeof(audio));
@@ -218,7 +228,7 @@ void loop() {
   }
 
   // average temperature
-  arcada.display->setTextColor(ARCADA_GREEN);
+  arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
   printTemperature(); // takes 750ms, including measurement
 
 }
