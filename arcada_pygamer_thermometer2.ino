@@ -13,11 +13,6 @@ uint32_t buttons, last_buttons;
 uint8_t j = 0;  // neopixel counter for rainbow
 #define JOY_THRESHOLD 100
 
-//---- brightness ----
-#define BR_SIZE 12
-int brightness_table[BR_SIZE] = {1, 2, 3, 5, 9, 14, 22, 36, 59, 95, 155, 250};
-int led_brightness_table[BR_SIZE] = {0, 14, 19, 25, 33, 45, 60, 80, 107, 143, 191, 255};
-
 //---- DS18B20 ----
 #define ONE_WIRE_BUS 3
 #define TEMPERATURE_PRECISION 12
@@ -39,8 +34,13 @@ volatile int countdown = -1;
 int t_set = 21;
 AverageTemp avgTemp;
 int time_interval = 3;
-int lcd_brightness = 9;
-int led_brightness = 9;
+int lcd_brightness = 2;
+int led_brightness = 3;
+
+#define BR_SIZE 5
+int brightness_table[BR_SIZE] = {1, 4, 16, 63, 250};
+#define LBR_SIZE 6
+int led_brightness_table[LBR_SIZE] = {0, 14, 29, 59, 123, 255};
 
 //---- timing ---
 #define INTERVALS_SIZE 7
@@ -133,7 +133,7 @@ void processInput(int x, int y) {
   if (x < -JOY_THRESHOLD && lcd_brightness > 0) {
     lcd_brightness--;
   }
-  if (y > JOY_THRESHOLD && led_brightness < BR_SIZE - 1) {
+  if (y > JOY_THRESHOLD && led_brightness < LBR_SIZE - 1) {
     led_brightness++;
   }
   if (y < -JOY_THRESHOLD && led_brightness > 0) {
@@ -205,7 +205,7 @@ void loop() {
   if (count < 0) {
     count = -count;
   }
-  Serial.printf("delta: %f, count: %d\n", delta, count);
+  // Serial.printf("delta: %f, count: %d\n", delta, count);
   arcada.pixels.setPixelColor(2, count > 0 ? color : PX_BLACK);
   arcada.pixels.setPixelColor(3, count > 1 ? color : PX_BLACK);
   arcada.pixels.setPixelColor(1, count > 2 ? color : PX_BLACK);
