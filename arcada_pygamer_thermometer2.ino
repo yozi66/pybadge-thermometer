@@ -49,13 +49,13 @@ int intervals[INTERVALS_SIZE] = {5, 15, 30, 60, 120, 180, 300};
 //---- timer callback ----
 // Check the timer callback, this function is called every second!
 // volatile uint16_t milliseconds = 0;
-volatile bool flag = true;
+volatile bool measure = true;
 void timercallback() {
-  analogWrite(13, 0); // LED OFF
   if (countdown > 0) {
     countdown--;
   }
-  flag = true;
+  analogWrite(13, 1); // weak red light on the LED
+  measure = true;
 }
 
 //---- measureTemperature ----
@@ -73,6 +73,7 @@ void printTemperature() {
   arcada.display->print("\xF8" "C");
 }
 
+//---- setup ----
 void setup() {
   // while (!Serial);
   Serial.begin(115200);
@@ -111,12 +112,14 @@ void setup() {
   arcada.display->fillScreen(ARCADA_BLACK);
 }
 
+//---- processInput ----
 bool justPressed(uint32_t mask) {
   return (buttons & mask) && ! (last_buttons & mask);
 }
 
-void processInput(int x, int y) {
-  buttons = arcada.readButtons(); // & 0xF; // built-in joy to button conversion is not good enough
+bool processInput(int x, int y) {
+  buttons = arcada.readButtons();
+  // Serial.printf("buttons: %x, ", buttons)
   if (justPressed(ARCADA_BUTTONMASK_A) && time_interval < INTERVALS_SIZE - 1) {
     time_interval++;
   }
@@ -145,8 +148,10 @@ void processInput(int x, int y) {
     led_brightness--;
   }
   last_buttons = buttons;
+  return buttons;
 }
 
+//---- updateDisplay ----
 void updateDisplay(int x, int y) {
   arcada.setBacklight(brightness_table[lcd_brightness]);
 
@@ -200,54 +205,56 @@ void updateDisplay(int x, int y) {
   printTemperature();
 }
 
-void loop() {
-  unsigned long start = millis();
-  if (flag) {
-    measureTemperature();
-    // Serial.printf("measureTemperature: %d ms\n", millis() - start); 
-    flag = false;
-  }
-  int x = arcada.readJoystickX();
-  int y = arcada.readJoystickY();
-
-  start = millis();
-  processInput(x, y);
-  updateDisplay(x, y);
-
-  // LEDs
+//---- updatePixels ----
+int updatePixels() {
   float delta = avgTemp.temp_disp - t_set;
   uint32_t color = (delta > 0 ? PX_RED : PX_BLUE) * led_brightness_table[led_brightness];
   int count = delta / 0.5;
   if (count < 0) {
     count = -count;
   }
-  // Serial.printf("delta: %f, count: %d\n", delta, count);
   arcada.pixels.setPixelColor(2, count > 0 ? color : PX_BLACK);
   arcada.pixels.setPixelColor(3, count > 1 ? color : PX_BLACK);
   arcada.pixels.setPixelColor(1, count > 2 ? color : PX_BLACK);
   arcada.pixels.setPixelColor(4, count > 3 ? color : PX_BLACK);
   arcada.pixels.setPixelColor(0, count > 4 ? color : PX_BLACK);
   arcada.pixels.show();
-  // Serial.printf("processInput + updateDisplay + pixels: %d ms\n", millis() - start); 
+  return count;
+}
 
-  bool playsound = false;
+//---- beepIfNeeded ----
+void beepIfNeeded(int count) {
   if (count == 0) {
     countdown = -1;
   } else if (countdown <= 0) {
     countdown = intervals[time_interval];
-    playsound = true;
-  }
-
-  analogWrite(13, 1); // weak red light on the LED
-  if (playsound) {
-    start = millis();
+    // beep
     arcada.enableSpeaker(true);
     play_tune(audio, sizeof(audio));
     arcada.enableSpeaker(false);
-    // Serial.printf("playsound: %d ms\n", millis() - start); 
   }
 }
 
+//---- loop ----
+void loop() {
+  bool update_data = false;
+  if (measure) {
+    measureTemperature();
+    measure = false;
+    update_data = true;
+  }
+  int x = arcada.readJoystickX();
+  int y = arcada.readJoystickY();
+  update_data |= processInput(x, y);
+  if (update_data) {
+    updateDisplay(x, y);
+    int count = updatePixels();
+    beepIfNeeded(count);
+    analogWrite(13, 0); // LED OFF
+  }
+}
+
+//---- play_tune ----
 void play_tune(const uint8_t *audio, uint32_t audio_length) {
   uint32_t t;
   uint32_t prior, usec = 1000000L / SAMPLE_RATE;
@@ -259,6 +266,5 @@ void play_tune(const uint8_t *audio, uint32_t audio_length) {
     prior = t;
   }
 }
-
 
 /*****************************************************************/
