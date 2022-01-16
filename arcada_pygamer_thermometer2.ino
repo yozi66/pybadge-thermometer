@@ -106,6 +106,10 @@ void setup() {
   if (deviceCount > 0) {
     ds18b20.getAddress(oneWire_addr, 0);
     ds18b20.setWaitForConversion(false);
+    ds18b20.requestTemperatures();
+    delay(750);
+    avgTemp.setTemp(ds18b20.getTempC(oneWire_addr));
+    printTemperature();
   }
   delay(300);
   arcada.timerCallback(1 /* Hz */, timercallback);
