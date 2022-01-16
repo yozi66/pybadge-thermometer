@@ -104,44 +104,44 @@ void setup() {
   arcada.display->println(" DS18B20");
   if (deviceCount > 0) {
     ds18b20.getAddress(oneWire_addr, 0);
-    ds18b20.requestTemperatures();
     ds18b20.setWaitForConversion(false);
-    delay(750);
-    avgTemp.setTemp(ds18b20.getTempC(oneWire_addr));
   }
-  printTemperature();
-  delay(1500);
+  delay(300);
   arcada.timerCallback(1 /* Hz */, timercallback);
   arcada.display->fillScreen(ARCADA_BLACK);
 }
 
+bool justPressed(uint32_t mask) {
+  return (buttons & mask) && ! (last_buttons & mask);
+}
+
 void processInput(int x, int y) {
-  uint32_t buttons = arcada.readButtons();
-  if (buttons & ARCADA_BUTTONMASK_A && time_interval < INTERVALS_SIZE - 1) {
+  buttons = arcada.readButtons(); // & 0xF; // built-in joy to button conversion is not good enough
+  if (justPressed(ARCADA_BUTTONMASK_A) && time_interval < INTERVALS_SIZE - 1) {
     time_interval++;
   }
-  if (buttons & ARCADA_BUTTONMASK_B && time_interval > 0) {
+  if (justPressed(ARCADA_BUTTONMASK_B) && time_interval > 0) {
     time_interval--;
     if (intervals[time_interval] < countdown) {
       countdown = intervals[time_interval];
     }
   }
-  if (buttons & ARCADA_BUTTONMASK_START) {
+  if (justPressed(ARCADA_BUTTONMASK_START)) {
     t_set++;
   }
-  if (buttons & ARCADA_BUTTONMASK_SELECT) {
+  if (justPressed(ARCADA_BUTTONMASK_SELECT)) {
     t_set--;
   }
-  if (x > JOY_THRESHOLD && lcd_brightness < BR_SIZE - 1) {
+  if (justPressed(ARCADA_BUTTONMASK_RIGHT) && lcd_brightness < BR_SIZE - 1) {
     lcd_brightness++;
   }
-  if (x < -JOY_THRESHOLD && lcd_brightness > 0) {
+  if (justPressed(ARCADA_BUTTONMASK_LEFT) && lcd_brightness > 0) {
     lcd_brightness--;
   }
-  if (y > JOY_THRESHOLD && led_brightness < LBR_SIZE - 1) {
+  if (justPressed(ARCADA_BUTTONMASK_DOWN) && led_brightness < LBR_SIZE - 1) {
     led_brightness++;
   }
-  if (y < -JOY_THRESHOLD && led_brightness > 0) {
+  if (justPressed(ARCADA_BUTTONMASK_UP) && led_brightness > 0) {
     led_brightness--;
   }
   last_buttons = buttons;
@@ -204,7 +204,7 @@ void loop() {
   unsigned long start = millis();
   if (flag) {
     measureTemperature();
-    Serial.printf("measureTemperature: %d ms\n", millis() - start); 
+    // Serial.printf("measureTemperature: %d ms\n", millis() - start); 
     flag = false;
   }
   int x = arcada.readJoystickX();
@@ -228,7 +228,7 @@ void loop() {
   arcada.pixels.setPixelColor(4, count > 3 ? color : PX_BLACK);
   arcada.pixels.setPixelColor(0, count > 4 ? color : PX_BLACK);
   arcada.pixels.show();
-  Serial.printf("processInput + updateDisplay + pixels: %d ms\n", millis() - start); 
+  // Serial.printf("processInput + updateDisplay + pixels: %d ms\n", millis() - start); 
 
   bool playsound = false;
   if (count == 0) {
@@ -244,7 +244,7 @@ void loop() {
     arcada.enableSpeaker(true);
     play_tune(audio, sizeof(audio));
     arcada.enableSpeaker(false);
-    Serial.printf("playsound: %d ms\n", millis() - start); 
+    // Serial.printf("playsound: %d ms\n", millis() - start); 
   }
 }
 
