@@ -29,22 +29,23 @@ uint32_t PX_CYAN = arcada.pixels.Color(0,1,1);
 uint32_t PX_BLUE = arcada.pixels.Color(0,0,1);
 uint32_t PX_BLACK = arcada.pixels.Color(0,0,0);
 
+//---- data tables and constants ---
+#define BR_SIZE 5
+int brightness_table[BR_SIZE] = {1, 4, 16, 63, 250};
+#define LBR_SIZE 6
+int led_brightness_table[LBR_SIZE] = {0, 14, 29, 59, 123, 255};
+#define INTERVALS_SIZE 7
+int intervals[INTERVALS_SIZE] = {5, 15, 30, 60, 120, 180, 300};
+char speaker[] = { 0xda, 0x11, 0x00 };
+
 //---- data to display ----
-volatile int countdown = -1;
 int t_set = 21;
 AverageTemp avgTemp;
 int time_interval = 3;
 int lcd_brightness = 2;
 int led_brightness = 3;
-
-#define BR_SIZE 5
-int brightness_table[BR_SIZE] = {1, 4, 16, 63, 250};
-#define LBR_SIZE 6
-int led_brightness_table[LBR_SIZE] = {0, 14, 29, 59, 123, 255};
-
-//---- timing ---
-#define INTERVALS_SIZE 7
-int intervals[INTERVALS_SIZE] = {5, 15, 30, 60, 120, 180, 300};
+bool sound = true;
+volatile int countdown = intervals[time_interval];
 
 //---- timer callback ----
 // Check the timer callback, this function is called every second!
@@ -124,13 +125,21 @@ bool justPressed(uint32_t mask) {
 bool processInput(int x, int y) {
   buttons = arcada.readButtons();
   // Serial.printf("buttons: %x, ", buttons)
-  if (justPressed(ARCADA_BUTTONMASK_A) && time_interval < INTERVALS_SIZE - 1) {
-    time_interval++;
+  if (justPressed(ARCADA_BUTTONMASK_A)) {
+    if (time_interval < INTERVALS_SIZE - 1) {
+      time_interval++;
+    } else {
+      sound = ! sound;
+    }
   }
-  if (justPressed(ARCADA_BUTTONMASK_B) && time_interval > 0) {
-    time_interval--;
-    if (intervals[time_interval] < countdown) {
-      countdown = intervals[time_interval];
+  if (justPressed(ARCADA_BUTTONMASK_B)) {
+    if (time_interval > 0) {
+      time_interval--;
+      if (intervals[time_interval] < countdown) {
+        countdown = intervals[time_interval];
+      }
+    } else {
+      sound = ! sound;
     }
   }
   if (justPressed(ARCADA_BUTTONMASK_START)) {
@@ -184,12 +193,22 @@ void updateDisplay(int x, int y) {
   }
   arcada.display->setTextSize(1);
 
-  // lower darkgreen row
+  // upper darkgreen row
   arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
   // Read light sensor
-  arcada.display->setCursor(0, 128);
+  arcada.display->setCursor(0, 111);
   arcada.display->printf("L%-4d", arcada.readLightSensor());
+
+  // speaker flag
+  if (sound) {
+    arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
+  }
+  arcada.display->setCursor(6, 128);
+  arcada.display->print(speaker);
+
+  // lower darkgreen row
   // joystick
+  arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
   arcada.display->setCursor(40, 128);
   arcada.display->printf("x:%-4d", x);
   arcada.display->setCursor(90, 128);
@@ -232,10 +251,12 @@ void beepIfNeeded(int count) {
     countdown = -1;
   } else if (countdown <= 0) {
     countdown = intervals[time_interval];
-    // beep
-    arcada.enableSpeaker(true);
-    play_tune(audio, sizeof(audio));
-    arcada.enableSpeaker(false);
+    if (sound) {
+      // beep
+      arcada.enableSpeaker(true);
+      play_tune(audio, sizeof(audio));
+      arcada.enableSpeaker(false);
+    }
   }
 }
 
