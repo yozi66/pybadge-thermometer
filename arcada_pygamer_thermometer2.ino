@@ -231,7 +231,7 @@ void updateDisplay(int x, int y) {
 
 //---- updatePixels ----
 int updatePixels() {
-  float delta = avgTemp.temp_disp - t_set / 2;
+  float delta = avgTemp.temp_disp - (t_set / 2.0);
   uint32_t color = (delta > 0 ? PX_RED : PX_BLUE) * led_brightness_table[led_brightness];
   int count = delta / 0.5;
   if (count < 0) {
