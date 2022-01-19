@@ -36,10 +36,10 @@ int brightness_table[BR_SIZE] = {1, 4, 16, 63, 250};
 int led_brightness_table[LBR_SIZE] = {0, 14, 29, 59, 123, 255};
 #define INTERVALS_SIZE 7
 int intervals[INTERVALS_SIZE] = {5, 15, 30, 60, 120, 180, 300};
-char speaker[] = { 0xda, 0x11, 0x00 };
+char speaker[] = { 0x0e, 0x00 };
 
 //---- data to display ----
-int t_set = 21;
+int t_set = 43; // in half degrees Celsius
 AverageTemp avgTemp;
 int time_interval = 3;
 int lcd_brightness = 2;
@@ -96,6 +96,7 @@ void setup() {
   arcada.display->setRotation(2);
   arcada.display->setCursor(0, 0);
   arcada.display->setTextWrap(true);
+  arcada.display->cp437();
 
   buttons = last_buttons = 0;
 
@@ -171,10 +172,10 @@ void updateDisplay(int x, int y) {
   // first line
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
   arcada.display->setCursor(0, 4);
-  arcada.display->printf("%3d" "\xF8" "C", t_set);
+  arcada.display->printf("%5.1f" "\xF8" "C", t_set / 2.0);
   // current temp
   arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
-  arcada.display->setCursor(36, 4);
+  arcada.display->setCursor(42, 4);
   arcada.display->printf("%7.2f", avgTemp.temp_curr);
   // Read battery
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
@@ -196,7 +197,7 @@ void updateDisplay(int x, int y) {
   // upper darkgreen row
   arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
   // Read light sensor
-  arcada.display->setCursor(0, 111);
+  arcada.display->setCursor(6, 111);
   arcada.display->printf("L%-4d", arcada.readLightSensor());
 
   // speaker flag
@@ -230,7 +231,7 @@ void updateDisplay(int x, int y) {
 
 //---- updatePixels ----
 int updatePixels() {
-  float delta = avgTemp.temp_disp - t_set;
+  float delta = avgTemp.temp_disp - t_set / 2;
   uint32_t color = (delta > 0 ? PX_RED : PX_BLUE) * led_brightness_table[led_brightness];
   int count = delta / 0.5;
   if (count < 0) {
