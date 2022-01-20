@@ -123,10 +123,10 @@ void setup() {
 
   while(true) {
   float vbat;
-  for (vbat = 4.25; vbat > 2.5; vbat -= 0.05) {
-    drawBattery(vbat);
-    delay(250);
-  }
+    for (vbat = 4.5; vbat > 2.5; vbat -= 0.05) {
+      drawBattery(vbat);
+      delay(250);
+    }
   }
 }
 
