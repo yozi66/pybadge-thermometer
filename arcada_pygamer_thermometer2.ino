@@ -37,6 +37,10 @@ int led_brightness_table[LBR_SIZE] = {0, 14, 29, 59, 123, 255};
 #define INTERVALS_SIZE 7
 int intervals[INTERVALS_SIZE] = {5, 15, 30, 60, 120, 180, 300};
 char speaker[] = { 0x0e, 0x00 };
+#define VOLTAGES_SIZE 6
+//                             RED    0    1    2    3    4   +
+float voltages[VOLTAGES_SIZE] = { 3.2, 3.4, 3.6, 3.8, 4.0, 4.2 };
+// float voltages[VOLTAGES_SIZE] = { 3.95, 4.0, 4.05, 4.1, 4.15, 4.2 };
 
 //---- data to display ----
 int t_set = 43; // in half degrees Celsius
@@ -116,6 +120,14 @@ void setup() {
   delay(300);
   arcada.timerCallback(1 /* Hz */, timercallback);
   arcada.display->fillScreen(ARCADA_BLACK);
+
+  while(true) {
+  float vbat;
+  for (vbat = 4.25; vbat > 2.5; vbat -= 0.05) {
+    drawBattery(vbat);
+    delay(250);
+  }
+  }
 }
 
 //---- processInput ----
@@ -165,6 +177,33 @@ bool processInput(int x, int y) {
   return buttons;
 }
 
+//---- drawBattery ----
+void drawBattery(float vbat) {
+  arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
+  arcada.display->setCursor(96, 14);
+  uint16_t color = vbat < voltages[0] ? ARCADA_RED : ARCADA_GREEN;
+  arcada.display->setTextColor(color, ARCADA_BLACK);
+  arcada.display->print(vbat); arcada.display->println("V");
+  #define BAT_LEFT 98
+  #define BAT_TOP 3
+  #define BAT_HEIGHT 9
+  #define BAT_UNITS (VOLTAGES_SIZE - 2)
+  #define UNIT_WIDTH 3
+  #define UNIT_SPACE 2
+  arcada.display->drawRect(BAT_LEFT + 2, BAT_TOP, BAT_UNITS * UNIT_WIDTH + (BAT_UNITS + 1) * UNIT_SPACE + 2, 
+      BAT_HEIGHT, color);
+  arcada.display->drawRect(BAT_LEFT, BAT_TOP + 3, 3, BAT_HEIGHT - 6, color);
+  uint16_t maxColor = vbat > voltages[VOLTAGES_SIZE - 1] ? ARCADA_GREEN : ARCADA_BLACK;
+  arcada.display->drawPixel(BAT_LEFT + 1, BAT_TOP + 4, maxColor);
+  arcada.display->drawFastHLine(BAT_LEFT, BAT_TOP + 2, 2, maxColor);
+  arcada.display->drawFastHLine(BAT_LEFT, BAT_TOP + 6, 2, maxColor);
+
+  int i;
+  for (i = 0; i < BAT_UNITS; i++) {
+    int x = BAT_LEFT + 3 + (BAT_UNITS - i - 1) * (UNIT_WIDTH + UNIT_SPACE) + UNIT_SPACE;
+    arcada.display->fillRect(x, BAT_TOP + 2, UNIT_WIDTH, BAT_HEIGHT - 4, vbat > voltages[i + 1] ? color : ARCADA_BLACK);
+  }
+}
 //---- updateDisplay ----
 void updateDisplay(int x, int y) {
   arcada.setBacklight(brightness_table[lcd_brightness]);
@@ -177,11 +216,10 @@ void updateDisplay(int x, int y) {
   arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
   arcada.display->setCursor(42, 4);
   arcada.display->printf("%7.2f", avgTemp.temp_curr);
+
   // Read battery
-  arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
-  arcada.display->setCursor(96, 4);
   float vbat = arcada.readBatterySensor();
-  arcada.display->print(vbat); arcada.display->println("V");
+  drawBattery(vbat);
 
   // countdown
   arcada.display->setCursor(48, 96);
