@@ -39,8 +39,7 @@ int intervals[INTERVALS_SIZE] = {5, 15, 30, 60, 120, 180, 300};
 char speaker[] = { 0x0e, 0x00 };
 #define VOLTAGES_SIZE 6
 //                             RED    0    1    2    3    4   +
-float voltages[VOLTAGES_SIZE] = { 3.2, 3.4, 3.6, 3.8, 4.0, 4.2 };
-// float voltages[VOLTAGES_SIZE] = { 3.95, 4.0, 4.05, 4.1, 4.15, 4.2 };
+float voltages[VOLTAGES_SIZE] = { 3.2, 3.4, 3.6, 3.8, 4.0, 4.18 };
 
 //---- data to display ----
 int t_set = 43; // in half degrees Celsius
@@ -120,14 +119,6 @@ void setup() {
   delay(300);
   arcada.timerCallback(1 /* Hz */, timercallback);
   arcada.display->fillScreen(ARCADA_BLACK);
-
-  while(true) {
-  float vbat;
-    for (vbat = 4.5; vbat > 2.5; vbat -= 0.05) {
-      drawBattery(vbat);
-      delay(250);
-    }
-  }
 }
 
 //---- processInput ----
