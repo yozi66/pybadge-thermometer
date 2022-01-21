@@ -31,7 +31,7 @@ uint32_t PX_BLACK = arcada.pixels.Color(0,0,0);
 
 //---- data tables and constants ---
 #define BR_SIZE 5
-int brightness_table[BR_SIZE] = {1, 4, 16, 63, 250};
+int brightness_table[BR_SIZE] = {1, 4, 16, 64, 255};
 #define LBR_SIZE 6
 int led_brightness_table[LBR_SIZE] = {0, 14, 29, 59, 123, 255};
 #define INTERVALS_SIZE 7
@@ -45,6 +45,7 @@ float voltages[VOLTAGES_SIZE] = { 3.2, 3.4, 3.6, 3.8, 4.0, 4.18 };
 int t_set = 43; // in half degrees Celsius
 AverageTemp avgTemp;
 AverageTemp voltage;
+AverageTemp light;
 int time_interval = 3;
 int lcd_brightness = 2;
 int led_brightness = 3;
@@ -72,6 +73,12 @@ void measureTemperature() {
 //---- measureVoltage ----
 void measureVoltage() {
   voltage.setTemp(arcada.readBatterySensor());
+}
+
+//---- measureLight ----
+void measureLight() {
+  uint16_t raw = arcada.readLightSensor();
+  light.setTemp(log(raw + 1.0) * 0.7);
 }
 
 //---- printTemperature ----
@@ -238,7 +245,7 @@ void updateDisplay(int x, int y) {
   // light sensor
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
   arcada.display->setCursor(6, 128);
-  arcada.display->printf("%-5d", arcada.readLightSensor());
+  arcada.display->printf("%-4.1f", light.temp_disp);
 
   // speaker flag
   if (sound) {
@@ -307,6 +314,7 @@ void loop() {
   if (measure) {
     measureTemperature();
     measureVoltage();
+    measureLight();
     measure = false;
     update_data = true;
   }
