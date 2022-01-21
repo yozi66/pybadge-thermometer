@@ -31,30 +31,38 @@ uint32_t PX_BLACK = arcada.pixels.Color(0,0,0);
 
 //---- data tables and constants ---
 #define BR_SIZE 5
-int brightness_table[BR_SIZE] = {1, 4, 16, 64, 255};
+int brightness_table[BR_SIZE] = {1,  4,  16,  64,   255};
+uint16_t lcd_low[BR_SIZE] =     {0,  4,  20, 100,   700}; // thresholds to switch to lower lcd brightness
+uint16_t lcd_high[BR_SIZE] =    {7, 35, 350, 800, 65535}; // thresholds to switch to higher lcd brightness
+
 #define LBR_SIZE 6
-int led_brightness_table[LBR_SIZE] = {0, 14, 29, 59, 123, 255};
+int led_brightness_table[LBR_SIZE] = {0, 14, 29,  59,  123,   255};
+uint16_t led_low[LBR_SIZE] =         {0,  0,  4,  50,  200,   800}; // thresholds to switch to lower led brightness
+uint16_t led_high[LBR_SIZE] =        {0, 10, 50, 500,  900, 65535}; // thresholds to switch to higher led brightness
+
 #define INTERVALS_SIZE 7
 int intervals[INTERVALS_SIZE] = {5, 15, 30, 60, 120, 180, 300};
 char speaker[] = { 0x0e, 0x00 };
+
 #define VOLTAGES_SIZE 6
-//                             RED    0    1    2    3    4   +
+// display state ->            RED    0    1    2    3    4   +
 float voltages[VOLTAGES_SIZE] = { 3.2, 3.4, 3.6, 3.8, 4.0, 4.18 };
 
 //---- data to display ----
 int t_set = 43; // in half degrees Celsius
 AverageTemp avgTemp;
 AverageTemp voltage;
-AverageTemp light;
+uint16_t light = 0;
 int time_interval = 3;
 int lcd_brightness = 2;
+bool lcd_auto = true;
 int led_brightness = 3;
+bool led_auto = true;
 bool sound = true;
 volatile int countdown = intervals[time_interval];
 
 //---- timer callback ----
-// Check the timer callback, this function is called every second!
-// volatile uint16_t milliseconds = 0;
+// This function is called every second
 volatile bool measure = true;
 void timercallback() {
   if (countdown > 0) {
@@ -77,8 +85,21 @@ void measureVoltage() {
 
 //---- measureLight ----
 void measureLight() {
-  uint16_t raw = arcada.readLightSensor();
-  light.setTemp(log(raw + 1.0) * 0.7);
+    light = arcada.readLightSensor();
+    if (lcd_auto) {
+      if (light > lcd_high[lcd_brightness]) {
+        lcd_brightness++;
+      } else if (light < lcd_low[lcd_brightness]) {
+        lcd_brightness--;
+      }
+    }
+    if (led_auto) {
+      if (light > led_high[led_brightness]) {
+        led_brightness++;
+      } else if (light < led_low[led_brightness]) {
+        led_brightness--;
+      }
+    }
 }
 
 //---- printTemperature ----
@@ -168,17 +189,37 @@ bool processInput(int x, int y) {
   if (justPressed(ARCADA_BUTTONMASK_SELECT)) {
     t_set--;
   }
-  if (justPressed(ARCADA_BUTTONMASK_RIGHT) && lcd_brightness < BR_SIZE - 1) {
-    lcd_brightness++;
+  if (justPressed(ARCADA_BUTTONMASK_RIGHT)) {
+    if (lcd_brightness < BR_SIZE - 1) {
+      lcd_brightness++;
+      lcd_auto = false;
+    } else {
+      lcd_auto = true;
+    }
   }
-  if (justPressed(ARCADA_BUTTONMASK_LEFT) && lcd_brightness > 0) {
-    lcd_brightness--;
+  if (justPressed(ARCADA_BUTTONMASK_LEFT)) {
+    if (lcd_brightness > 0) {
+      lcd_brightness--;
+      lcd_auto = false;
+    } else {
+      lcd_auto = true;
+    }
   }
-  if (justPressed(ARCADA_BUTTONMASK_DOWN) && led_brightness < LBR_SIZE - 1) {
-    led_brightness++;
+  if (justPressed(ARCADA_BUTTONMASK_DOWN)) {
+    if (led_brightness < LBR_SIZE - 1) {
+      led_brightness++;
+      led_auto = false;
+    } else {
+      led_auto = true;
+    }
   }
-  if (justPressed(ARCADA_BUTTONMASK_UP) && led_brightness > 0) {
-    led_brightness--;
+  if (justPressed(ARCADA_BUTTONMASK_UP)) {
+    if (led_brightness > 0) {
+      led_brightness--;
+      led_auto = false;
+    } else {
+      led_auto = true;
+    }
   }
   last_buttons = buttons;
   return buttons;
@@ -217,7 +258,7 @@ void drawBattery(float vbat) {
   }
 }
 //---- updateDisplay ----
-void updateDisplay(int x, int y) {
+void updateDisplay(uint16_t light, int x, int y) {
   arcada.setBacklight(brightness_table[lcd_brightness]);
 
   // first line
@@ -244,8 +285,8 @@ void updateDisplay(int x, int y) {
 
   // light sensor
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
-  arcada.display->setCursor(6, 128);
-  arcada.display->printf("%-4.1f", light.temp_disp);
+  arcada.display->setCursor(light > 9999 ? 0 : 6, 128);
+  arcada.display->printf("%-4d", light);
 
   // speaker flag
   if (sound) {
@@ -267,9 +308,9 @@ void updateDisplay(int x, int y) {
   arcada.display->setCursor(0, 148);
   arcada.display->printf("%3ds", intervals[time_interval]);
   arcada.display->setCursor(40, 148);
-  arcada.display->printf("lcd:%2d", lcd_brightness + 1);
+  arcada.display->printf("lcd:%1d%c", lcd_brightness + 1, lcd_auto ? 'A' : ' ');
   arcada.display->setCursor(90, 148);
-  arcada.display->printf("led:%2d", led_brightness);
+  arcada.display->printf("led:%1d%c", led_brightness, led_auto ? 'A' : ' ');
 
   // average temperature
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
@@ -322,7 +363,7 @@ void loop() {
   int y = arcada.readJoystickY();
   update_data |= processInput(x, y);
   if (update_data) {
-    updateDisplay(x, y);
+    updateDisplay(light, x, y);
     int count = updatePixels();
     beepIfNeeded(count);
     analogWrite(13, 0); // LED OFF
