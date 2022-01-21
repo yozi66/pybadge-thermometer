@@ -31,19 +31,5 @@ void AverageTemp::setTemp(float temp) {
         temp_disp = temp_avg;
       }
     }
-    // simple average for one minute
-    temp_sum += temp;
-    temp_count++;
-  }
-}
-
-float AverageTemp::getAvg() {
-  if (temp_count == 0) {
-    return DEVICE_DISCONNECTED_C;
-  } else {
-    float result = temp_sum / temp_count;
-    temp_sum = 0.0;
-    temp_count = 0;
-    return result;
   }
 }

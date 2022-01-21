@@ -44,6 +44,7 @@ float voltages[VOLTAGES_SIZE] = { 3.2, 3.4, 3.6, 3.8, 4.0, 4.18 };
 //---- data to display ----
 int t_set = 43; // in half degrees Celsius
 AverageTemp avgTemp;
+AverageTemp voltage;
 int time_interval = 3;
 int lcd_brightness = 2;
 int led_brightness = 3;
@@ -66,6 +67,11 @@ void timercallback() {
 void measureTemperature() {
   avgTemp.setTemp(ds18b20.getTempC(oneWire_addr));
   ds18b20.requestTemperatures();
+}
+
+//---- measureVoltage ----
+void measureVoltage() {
+  voltage.setTemp(arcada.readBatterySensor());
 }
 
 //---- printTemperature ----
@@ -119,6 +125,9 @@ void setup() {
   delay(300);
   arcada.timerCallback(1 /* Hz */, timercallback);
   arcada.display->fillScreen(ARCADA_BLACK);
+  voltage.hysteresis = 0.005;
+  voltage.old_wt = 7;
+  measureVoltage();
 }
 
 //---- processInput ----
@@ -175,6 +184,11 @@ void drawBattery(float vbat) {
   uint16_t color = vbat < voltages[0] ? ARCADA_RED : ARCADA_GREEN;
   arcada.display->setTextColor(color, ARCADA_BLACK);
   arcada.display->print(vbat); arcada.display->println("V");
+  float percentage = (vbat - 2.99) / 1.19 * 100;
+  percentage = max(0.0, percentage);
+  percentage = min(100.0, percentage);
+  arcada.display->setCursor(54, 4);
+  arcada.display->printf("%3.0f%%", percentage);
   #define BAT_LEFT 98
   #define BAT_TOP 3
   #define BAT_HEIGHT 9
@@ -203,14 +217,12 @@ void updateDisplay(int x, int y) {
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
   arcada.display->setCursor(0, 4);
   arcada.display->printf("%5.1f" "\xF8" "C", t_set / 2.0);
+  drawBattery(voltage.temp_disp);
+
   // current temp
   arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
-  arcada.display->setCursor(42, 4);
+  arcada.display->setCursor(42, 14);
   arcada.display->printf("%7.2f", avgTemp.temp_curr);
-
-  // Read battery
-  float vbat = arcada.readBatterySensor();
-  drawBattery(vbat);
 
   // countdown
   arcada.display->setCursor(48, 96);
@@ -223,17 +235,16 @@ void updateDisplay(int x, int y) {
   }
   arcada.display->setTextSize(1);
 
-  // upper darkgreen row
-  arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
-  // Read light sensor
-  arcada.display->setCursor(6, 111);
-  arcada.display->printf("L%-4d", arcada.readLightSensor());
+  // light sensor
+  arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
+  arcada.display->setCursor(6, 128);
+  arcada.display->printf("%-5d", arcada.readLightSensor());
 
   // speaker flag
   if (sound) {
     arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
   }
-  arcada.display->setCursor(6, 128);
+  arcada.display->setCursor(6, 14);
   arcada.display->print(speaker);
 
   // lower darkgreen row
@@ -295,6 +306,7 @@ void loop() {
   bool update_data = false;
   if (measure) {
     measureTemperature();
+    measureVoltage();
     measure = false;
     update_data = true;
   }
