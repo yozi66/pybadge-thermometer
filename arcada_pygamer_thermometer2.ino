@@ -289,6 +289,7 @@ void updateDisplay(uint16_t light, int x, int y) {
   arcada.display->printf("%-4d", light);
 
   // speaker flag
+  arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
   if (sound) {
     arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
   }
