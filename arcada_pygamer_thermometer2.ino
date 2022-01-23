@@ -46,7 +46,7 @@ char speaker[] = { 0x0e, 0x00 };
 
 #define VOLTAGES_SIZE 6
 // display state ->            RED    0    1    2    3    4   +
-float voltages[VOLTAGES_SIZE] = { 3.2, 3.4, 3.6, 3.8, 4.0, 4.18 };
+float voltages[VOLTAGES_SIZE] = { 3.45, 3.6, 3.75, 3.9, 4.04, 4.18 };
 
 //---- data to display ----
 int t_set = 43; // in half degrees Celsius
@@ -232,7 +232,7 @@ void drawBattery(float vbat) {
   uint16_t color = vbat < voltages[0] ? ARCADA_RED : ARCADA_GREEN;
   arcada.display->setTextColor(color, ARCADA_BLACK);
   arcada.display->print(vbat); arcada.display->println("V");
-  float percentage = (vbat - 2.99) / 1.19 * 100;
+  float percentage = (vbat - 3.31) / 0.88 * 100;
   percentage = max(0.0, percentage);
   percentage = min(100.0, percentage);
   arcada.display->setCursor(54, 4);
