@@ -32,8 +32,8 @@ uint32_t PX_BLACK = arcada.pixels.Color(0,0,0);
 //---- data tables and constants ---
 #define BR_SIZE 5
 int brightness_table[BR_SIZE] = {1,  4,  16,  64,   255};
-uint16_t lcd_low[BR_SIZE] =     {0,  4,  20, 100,   700}; // thresholds to switch to lower lcd brightness
-uint16_t lcd_high[BR_SIZE] =    {7, 35, 350, 800, 65535}; // thresholds to switch to higher lcd brightness
+uint16_t lcd_low[BR_SIZE] =     {0,  2,  10,  70,   500}; // thresholds to switch to lower lcd brightness
+uint16_t lcd_high[BR_SIZE] =    {2, 20, 140, 750, 65535}; // thresholds to switch to higher lcd brightness
 
 #define LBR_SIZE 6
 int led_brightness_table[LBR_SIZE] = {0, 14, 29,  59,  123,   255};
@@ -289,10 +289,7 @@ void updateDisplay(uint16_t light, int x, int y) {
   arcada.display->printf("%-4d", light);
 
   // speaker flag
-  arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
-  if (sound) {
-    arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
-  }
+  arcada.display->setTextColor(sound ? ARCADA_GREEN : ARCADA_DARKGREEN, ARCADA_BLACK);
   arcada.display->setCursor(6, 14);
   arcada.display->print(speaker);
 
