@@ -7,7 +7,7 @@
 #include "AverageTemp.h"
 
 //---- arcada ----
-Adafruit_Arcada arcada;
+Adafruit_Arcada arcada; // cp437
 extern Adafruit_SPIFlash Arcada_QSPI_Flash;
 uint32_t buttons, last_buttons;
 uint8_t j = 0;  // neopixel counter for rainbow
@@ -53,6 +53,12 @@ int t_set = 43; // in half degrees Celsius
 AverageTemp avgTemp;
 #define BUFSIZE 12
 char tempStr[BUFSIZE];
+float oldTemp;
+char oldLastDigit;
+float temp_change;
+#define UP_ARROW   0x18
+#define DOWN_ARROW 0x19
+
 AverageTemp voltage;
 uint16_t light = 0;
 int time_interval = 3;
@@ -105,13 +111,25 @@ void measureLight() {
 }
 
 //---- printTemperature ----
-void printTemperature() {
+// returns true on visible temperature change
+bool printTemperature() {
   snprintf(tempStr, BUFSIZE, "%4.1f", avgTemp.temp_disp);
+  bool result = tempStr[3] != oldLastDigit;
+  oldLastDigit = tempStr[3];
   arcada.display->setCursor(12, 48);
   arcada.display->setTextSize(4);
   arcada.display->print(tempStr);
+  if (result) {
+    temp_change = avgTemp.temp_disp - oldTemp;
+    arcada.display->setCursor(108, 60);
+    arcada.display->setTextSize(2);
+    arcada.display->printf("%c", temp_change > 0 ? UP_ARROW : DOWN_ARROW);
+    oldTemp = avgTemp.temp_disp;
+  }
+  arcada.display->setCursor(108, 48);
   arcada.display->setTextSize(1);
   arcada.display->print("\xF8" "C");
+  return result;
 }
 
 //---- setup ----
@@ -261,7 +279,8 @@ void drawBattery(float vbat) {
   }
 }
 //---- updateDisplay ----
-void updateDisplay(uint16_t light, int x, int y) {
+// returns true on visible temperature change
+bool updateDisplay(uint16_t light, int x, int y) {
   arcada.setBacklight(brightness_table[lcd_brightness]);
 
   // first line
@@ -315,7 +334,7 @@ void updateDisplay(uint16_t light, int x, int y) {
 
   // average temperature
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
-  printTemperature();
+  return printTemperature();
 }
 
 //---- updatePixels ----
