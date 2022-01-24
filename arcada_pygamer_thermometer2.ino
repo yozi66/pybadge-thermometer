@@ -6,6 +6,9 @@
 #include "audio.h"
 #include "AverageTemp.h"
 
+// DEBUG flag -> wait for Serial
+#define DEBUG 0
+
 //---- arcada ----
 Adafruit_Arcada arcada; // cp437
 extern Adafruit_SPIFlash Arcada_QSPI_Flash;
@@ -55,7 +58,7 @@ AverageTemp avgTemp;
 char tempStr[BUFSIZE];
 float oldTemp;
 char oldLastDigit;
-float temp_change;
+float tempChange;
 #define UP_ARROW   0x18
 #define DOWN_ARROW 0x19
 
@@ -110,31 +113,39 @@ void measureLight() {
     }
 }
 
+//---- printArrow ----
+void printArrow(char arrow) {
+    arcada.display->setCursor(108, 60);
+    arcada.display->setTextSize(2);
+    arcada.display->printf("%c", arrow);
+}
+
 //---- printTemperature ----
-// returns true on visible temperature change
-bool printTemperature() {
+// side effect: set tempChange on visible change
+void printTemperature() {
   snprintf(tempStr, BUFSIZE, "%4.1f", avgTemp.temp_disp);
-  bool result = tempStr[3] != oldLastDigit;
+  bool visibleChange = tempStr[3] != oldLastDigit;
   oldLastDigit = tempStr[3];
   arcada.display->setCursor(12, 48);
   arcada.display->setTextSize(4);
   arcada.display->print(tempStr);
-  if (result) {
-    temp_change = avgTemp.temp_disp - oldTemp;
-    arcada.display->setCursor(108, 60);
-    arcada.display->setTextSize(2);
-    arcada.display->printf("%c", temp_change > 0 ? UP_ARROW : DOWN_ARROW);
+  if (visibleChange) {
+    tempChange = avgTemp.temp_disp - oldTemp;
     oldTemp = avgTemp.temp_disp;
+    printArrow(tempChange > 0 ? UP_ARROW : DOWN_ARROW);
+  } else if (tempChange == 0.0) {
+    printArrow(' '); // clear the arrow
   }
   arcada.display->setCursor(108, 48);
   arcada.display->setTextSize(1);
   arcada.display->print("\xF8" "C");
-  return result;
 }
 
 //---- setup ----
 void setup() {
-  // while (!Serial);
+  if (DEBUG) {
+    while (!Serial);
+  }
   Serial.begin(115200);
 
   Serial.println("Hello! Arcada PyGamer test");
@@ -278,9 +289,9 @@ void drawBattery(float vbat) {
     arcada.display->fillRect(x, BAT_TOP + 2, UNIT_WIDTH, BAT_HEIGHT - 4, vbat > voltages[i + 1] ? color : ARCADA_BLACK);
   }
 }
+
 //---- updateDisplay ----
-// returns true on visible temperature change
-bool updateDisplay(uint16_t light, int x, int y) {
+void updateDisplay(uint16_t light, int x, int y) {
   arcada.setBacklight(brightness_table[lcd_brightness]);
 
   // first line
@@ -334,38 +345,46 @@ bool updateDisplay(uint16_t light, int x, int y) {
 
   // average temperature
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
-  return printTemperature();
+  printTemperature();
 }
 
 //---- updatePixels ----
 int updatePixels() {
   float delta = avgTemp.temp_disp - (t_set / 2.0);
-  uint32_t color = (delta > 0 ? PX_RED : PX_BLUE) * led_brightness_table[led_brightness];
+  uint32_t color = (delta > 0
+      ? (tempChange >= 0.0 ? PX_RED : PX_YELLOW)
+      : (tempChange <= 0.0 ? PX_BLUE : PX_GREEN)
+      ) * led_brightness_table[led_brightness];
   int count = delta / 0.5;
-  if (count < 0) {
-    count = -count;
-  }
-  arcada.pixels.setPixelColor(2, count > 0 ? color : PX_BLACK);
-  arcada.pixels.setPixelColor(3, count > 1 ? color : PX_BLACK);
-  arcada.pixels.setPixelColor(1, count > 2 ? color : PX_BLACK);
-  arcada.pixels.setPixelColor(4, count > 3 ? color : PX_BLACK);
-  arcada.pixels.setPixelColor(0, count > 4 ? color : PX_BLACK);
+  int absCount = abs(count);
+  arcada.pixels.setPixelColor(2, absCount > 0 ? color : PX_BLACK);
+  arcada.pixels.setPixelColor(3, absCount > 1 ? color : PX_BLACK);
+  arcada.pixels.setPixelColor(1, absCount > 2 ? color : PX_BLACK);
+  arcada.pixels.setPixelColor(4, absCount > 3 ? color : PX_BLACK);
+  arcada.pixels.setPixelColor(0, absCount > 4 ? color : PX_BLACK);
   arcada.pixels.show();
   return count;
 }
 
 //---- beepIfNeeded ----
 void beepIfNeeded(int count) {
-  if (count == 0) {
-    countdown = -1;
-  } else if (countdown <= 0) {
+  if (countdown < 0 && tempChange != 0.0) {
+    // start the counter to hide the tempChange mark later
     countdown = intervals[time_interval];
-    if (sound) {
+  } else if (count  == 0 && countdown == 0) {
+    // silently hide both the tempChange mark and the counter
+    tempChange = 0.0;
+    countdown = -1;
+  } else if (count != 0 && countdown <= 0) {
+    bool goodChange = count > 0 && tempChange < 0.0 || count < 0 && tempChange > 0.0;
+    if (sound && ! goodChange) {
       // beep
       arcada.enableSpeaker(true);
       play_tune(audio, sizeof(audio));
       arcada.enableSpeaker(false);
     }
+    countdown = intervals[time_interval];
+    tempChange = 0.0;
   }
 }
 
