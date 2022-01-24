@@ -51,6 +51,8 @@ float voltages[VOLTAGES_SIZE] = { 3.45, 3.6, 3.75, 3.9, 4.04, 4.18 };
 //---- data to display ----
 int t_set = 43; // in half degrees Celsius
 AverageTemp avgTemp;
+#define BUFSIZE 12
+char tempStr[BUFSIZE];
 AverageTemp voltage;
 uint16_t light = 0;
 int time_interval = 3;
@@ -104,9 +106,10 @@ void measureLight() {
 
 //---- printTemperature ----
 void printTemperature() {
+  snprintf(tempStr, BUFSIZE, "%4.1f", avgTemp.temp_disp);
   arcada.display->setCursor(12, 48);
   arcada.display->setTextSize(4);
-  arcada.display->printf("%4.1f", avgTemp.temp_disp);
+  arcada.display->print(tempStr);
   arcada.display->setTextSize(1);
   arcada.display->print("\xF8" "C");
 }
