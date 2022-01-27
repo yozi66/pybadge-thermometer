@@ -19,21 +19,11 @@
 //---- arcada ----
 Adafruit_Arcada arcada; // cp437
 
-//---- colors ----
-
-uint32_t PX_RED = arcada.pixels.Color(1,0,0);
-uint32_t PX_YELLOW = arcada.pixels.Color(1,1,0);
-uint32_t PX_GREEN = arcada.pixels.Color(0,1,0);
-uint32_t PX_CYAN = arcada.pixels.Color(0,1,1);
-uint32_t PX_BLUE = arcada.pixels.Color(0,0,1);
-uint32_t PX_BLACK = arcada.pixels.Color(0,0,0);
-
 //---- data tables and constants ---
 int brightness_table[BR_SIZE] = {1,  4,  16,  64,   255};
 uint16_t lcd_low[BR_SIZE] =     {0,  2,  10,  70,   500}; // thresholds to switch to lower lcd brightness
 uint16_t lcd_high[BR_SIZE] =    {2, 20, 140, 750, 65535}; // thresholds to switch to higher lcd brightness
 
-int led_brightness_table[LBR_SIZE] = {0, 14, 29,  59,  123,   255};
 uint16_t led_low[LBR_SIZE] =         {0,  0,  4,  50,  200,   800}; // thresholds to switch to lower led brightness
 uint16_t led_high[LBR_SIZE] =        {0, 10, 50, 500,  900, 65535}; // thresholds to switch to higher led brightness
 
@@ -244,24 +234,6 @@ void updateDisplay(uint16_t light) {
   // average temperature
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
   printTemperature();
-}
-
-//---- updatePixels ----
-int updatePixels() {
-  float delta = avgTemp.temp_disp - (t_set / 2.0);
-  uint32_t color = (delta > 0
-      ? (tempChange >= 0.0 ? PX_RED : PX_YELLOW)
-      : (tempChange <= 0.0 ? PX_BLUE : PX_GREEN)
-      ) * led_brightness_table[led_brightness];
-  int count = delta / 0.5;
-  int absCount = abs(count);
-  arcada.pixels.setPixelColor(2, absCount > 0 ? color : PX_BLACK);
-  arcada.pixels.setPixelColor(3, absCount > 1 ? color : PX_BLACK);
-  arcada.pixels.setPixelColor(1, absCount > 2 ? color : PX_BLACK);
-  arcada.pixels.setPixelColor(4, absCount > 3 ? color : PX_BLACK);
-  arcada.pixels.setPixelColor(0, absCount > 4 ? color : PX_BLACK);
-  arcada.pixels.show();
-  return count;
 }
 
 //---- beepIfNeeded ----

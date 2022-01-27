@@ -8,6 +8,7 @@ extern Adafruit_Arcada arcada; // cp437
 extern AverageTemp avgTemp;
 extern AverageTemp voltage;
 extern uint16_t light;
+extern float tempChange;
 
 //---- config ----
 #define BR_SIZE 5
@@ -28,10 +29,13 @@ extern bool led_auto;
 //---- timer ----
 extern volatile int countdown;
 
-//---- függvények ----
+//---- measure ----
 extern void measure_init();
 extern void measureTemperature();
 extern void printTemperature();
 extern bool processInput();
+
+//---- action ----
+extern int updatePixels();
 
 #endif
