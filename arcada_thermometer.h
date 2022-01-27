@@ -39,6 +39,7 @@ extern void measureLight();
 
 //---- action ----
 extern int updatePixels();
+extern void beepIfNeeded(int count);
 
 //---- display ----
 extern void display_init();

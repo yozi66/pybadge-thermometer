@@ -2,6 +2,7 @@
 #include <Adafruit_Arcada.h>
 #include "AverageTemp.h"
 #include "arcada_thermometer.h"
+#include "audio.h"
 
 //---- brightness ----
 
@@ -32,4 +33,39 @@ int updatePixels() {
   arcada.pixels.setPixelColor(0, absCount > 4 ? color : PX_BLACK);
   arcada.pixels.show();
   return count;
+}
+
+//---- play_tune ----
+void play_tune(const uint8_t *audio, uint32_t audio_length) {
+  uint32_t t;
+  uint32_t prior, usec = 1000000L / SAMPLE_RATE;
+  analogWriteResolution(8);
+  for (uint32_t i=0; i<audio_length; i++) {
+    while((t = micros()) - prior < usec);
+    analogWrite(A0, (uint16_t)audio[i] / 8);
+    analogWrite(A1, (uint16_t)audio[i] / 8);
+    prior = t;
+  }
+}
+
+//---- beepIfNeeded ----
+void beepIfNeeded(int count) {
+  if (countdown < 0 && tempChange != 0.0) {
+    // start the counter to hide the tempChange mark later
+    countdown = intervals[time_interval];
+  } else if (count  == 0 && countdown == 0) {
+    // silently hide both the tempChange mark and the counter
+    tempChange = 0.0;
+    countdown = -1;
+  } else if (count != 0 && countdown <= 0) {
+    bool goodChange = count > 0 && tempChange < 0.0 || count < 0 && tempChange > 0.0;
+    if (sound && ! goodChange) {
+      // beep
+      arcada.enableSpeaker(true);
+      play_tune(audio, sizeof(audio));
+      arcada.enableSpeaker(false);
+    }
+    countdown = intervals[time_interval];
+    tempChange = 0.0;
+  }
 }
