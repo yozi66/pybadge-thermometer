@@ -1,27 +1,24 @@
 
 #include <Adafruit_Arcada.h>
-#include <Adafruit_SPIFlash.h>
-#include <OneWire.h>
-#include <DallasTemperature.h>
 #include "audio.h"
 #include "AverageTemp.h"
+
+#include "arcada_thermometer.h"
+
+/***** TODO *****
+ * arcada_thermometer.ino
+ * arcada_thermometer.h
+ * measure.cpp
+ * decide.cpp
+ * action.cpp
+ */
 
 // DEBUG flag -> wait for Serial
 #define DEBUG 0
 
 //---- arcada ----
 Adafruit_Arcada arcada; // cp437
-extern Adafruit_SPIFlash Arcada_QSPI_Flash;
 uint32_t buttons, last_buttons;
-uint8_t j = 0;  // neopixel counter for rainbow
-#define JOY_THRESHOLD 100
-
-//---- DS18B20 ----
-#define ONE_WIRE_BUS 3
-#define TEMPERATURE_PRECISION 12
-OneWire oneWire(ONE_WIRE_BUS);
-DallasTemperature ds18b20(&oneWire);
-DeviceAddress oneWire_addr;
 
 //---- colors ----
 
@@ -81,12 +78,6 @@ void timercallback() {
   }
   analogWrite(13, 1); // weak red light on the LED
   measure = true;
-}
-
-//---- measureTemperature ----
-void measureTemperature() {
-  avgTemp.setTemp(ds18b20.getTempC(oneWire_addr));
-  ds18b20.requestTemperatures();
 }
 
 //---- measureVoltage ----
@@ -167,22 +158,9 @@ void setup() {
   arcada.display->setTextWrap(true);
   arcada.display->cp437();
 
+  measure_init();
   buttons = last_buttons = 0;
 
-  ds18b20.begin();
-  int deviceCount = ds18b20.getDeviceCount();
-  arcada.display->print("Found ");
-  arcada.display->print(deviceCount);
-  arcada.display->println(" DS18B20");
-  if (deviceCount > 0) {
-    ds18b20.getAddress(oneWire_addr, 0);
-    ds18b20.setWaitForConversion(false);
-    ds18b20.requestTemperatures();
-    delay(750);
-    avgTemp.setTemp(ds18b20.getTempC(oneWire_addr));
-    printTemperature();
-  }
-  delay(300);
   arcada.timerCallback(1 /* Hz */, timercallback);
   arcada.display->fillScreen(ARCADA_BLACK);
   voltage.hysteresis = 0.005;
