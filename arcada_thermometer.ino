@@ -18,7 +18,6 @@
 
 //---- arcada ----
 Adafruit_Arcada arcada; // cp437
-uint32_t buttons, last_buttons;
 
 //---- colors ----
 
@@ -30,17 +29,14 @@ uint32_t PX_BLUE = arcada.pixels.Color(0,0,1);
 uint32_t PX_BLACK = arcada.pixels.Color(0,0,0);
 
 //---- data tables and constants ---
-#define BR_SIZE 5
 int brightness_table[BR_SIZE] = {1,  4,  16,  64,   255};
 uint16_t lcd_low[BR_SIZE] =     {0,  2,  10,  70,   500}; // thresholds to switch to lower lcd brightness
 uint16_t lcd_high[BR_SIZE] =    {2, 20, 140, 750, 65535}; // thresholds to switch to higher lcd brightness
 
-#define LBR_SIZE 6
 int led_brightness_table[LBR_SIZE] = {0, 14, 29,  59,  123,   255};
 uint16_t led_low[LBR_SIZE] =         {0,  0,  4,  50,  200,   800}; // thresholds to switch to lower led brightness
 uint16_t led_high[LBR_SIZE] =        {0, 10, 50, 500,  900, 65535}; // thresholds to switch to higher led brightness
 
-#define INTERVALS_SIZE 7
 int intervals[INTERVALS_SIZE] = {5, 15, 30, 60, 120, 180, 300};
 char speaker[] = { 0x0e, 0x00 };
 
@@ -139,7 +135,7 @@ void setup() {
   }
   Serial.begin(115200);
 
-  Serial.println("Hello! Arcada PyGamer test");
+  Serial.println("Hello Arcada Thermometer");
   if (!arcada.arcadaBegin()) {
     Serial.print("Failed to begin");
     while (1);
@@ -159,80 +155,12 @@ void setup() {
   arcada.display->cp437();
 
   measure_init();
-  buttons = last_buttons = 0;
 
   arcada.timerCallback(1 /* Hz */, timercallback);
   arcada.display->fillScreen(ARCADA_BLACK);
   voltage.hysteresis = 0.005;
   voltage.old_wt = 7;
   measureVoltage();
-}
-
-//---- processInput ----
-bool justPressed(uint32_t mask) {
-  return (buttons & mask) && ! (last_buttons & mask);
-}
-
-bool processInput(int x, int y) {
-  buttons = arcada.readButtons();
-  // Serial.printf("buttons: %x, ", buttons)
-  if (justPressed(ARCADA_BUTTONMASK_A)) {
-    if (time_interval < INTERVALS_SIZE - 1) {
-      time_interval++;
-    } else {
-      sound = ! sound;
-    }
-  }
-  if (justPressed(ARCADA_BUTTONMASK_B)) {
-    if (time_interval > 0) {
-      time_interval--;
-      if (intervals[time_interval] < countdown) {
-        countdown = intervals[time_interval];
-      }
-    } else {
-      sound = ! sound;
-    }
-  }
-  if (justPressed(ARCADA_BUTTONMASK_START)) {
-    t_set++;
-  }
-  if (justPressed(ARCADA_BUTTONMASK_SELECT)) {
-    t_set--;
-  }
-  if (justPressed(ARCADA_BUTTONMASK_RIGHT)) {
-    if (lcd_brightness < BR_SIZE - 1) {
-      lcd_brightness++;
-      lcd_auto = false;
-    } else {
-      lcd_auto = true;
-    }
-  }
-  if (justPressed(ARCADA_BUTTONMASK_LEFT)) {
-    if (lcd_brightness > 0) {
-      lcd_brightness--;
-      lcd_auto = false;
-    } else {
-      lcd_auto = true;
-    }
-  }
-  if (justPressed(ARCADA_BUTTONMASK_DOWN)) {
-    if (led_brightness < LBR_SIZE - 1) {
-      led_brightness++;
-      led_auto = false;
-    } else {
-      led_auto = true;
-    }
-  }
-  if (justPressed(ARCADA_BUTTONMASK_UP)) {
-    if (led_brightness > 0) {
-      led_brightness--;
-      led_auto = false;
-    } else {
-      led_auto = true;
-    }
-  }
-  last_buttons = buttons;
-  return buttons;
 }
 
 //---- drawBattery ----
@@ -269,7 +197,7 @@ void drawBattery(float vbat) {
 }
 
 //---- updateDisplay ----
-void updateDisplay(uint16_t light, int x, int y) {
+void updateDisplay(uint16_t light) {
   arcada.setBacklight(brightness_table[lcd_brightness]);
 
   // first line
@@ -303,14 +231,6 @@ void updateDisplay(uint16_t light, int x, int y) {
   arcada.display->setTextColor(sound ? ARCADA_GREEN : ARCADA_DARKGREEN, ARCADA_BLACK);
   arcada.display->setCursor(6, 14);
   arcada.display->print(speaker);
-
-  // lower darkgreen row
-  // joystick
-  arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
-  arcada.display->setCursor(40, 128);
-  arcada.display->printf("x:%-4d", x);
-  arcada.display->setCursor(90, 128);
-  arcada.display->printf("y:%-4d", y);
 
   // last row
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
@@ -376,11 +296,9 @@ void loop() {
     measure = false;
     update_data = true;
   }
-  int x = arcada.readJoystickX();
-  int y = arcada.readJoystickY();
-  update_data |= processInput(x, y);
+  update_data |= processInput();
   if (update_data) {
-    updateDisplay(light, x, y);
+    updateDisplay(light);
     int count = updatePixels();
     beepIfNeeded(count);
     analogWrite(13, 0); // LED OFF
