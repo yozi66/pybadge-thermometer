@@ -17,6 +17,10 @@ uint32_t PX_CYAN = arcada.pixels.Color(0,1,1);
 uint32_t PX_BLUE = arcada.pixels.Color(0,0,1);
 uint32_t PX_BLACK = arcada.pixels.Color(0,0,0);
 
+//---- LED count memory ----
+
+int oldCount = 0;
+
 //---- updatePixels ----
 int updatePixels() {
   float delta = avgTemp.temp_disp - (t_set / 2.0);
@@ -57,7 +61,7 @@ void beepIfNeeded(int count) {
     // silently hide both the tempChange mark and the counter
     tempChange = 0.0;
     countdown = -1;
-  } else if (count != 0 && countdown <= 0) {
+  } else if (count != 0 && (countdown <= 0 || count > 0 && count > oldCount || count < 0 && count < oldCount)) {
     bool goodChange = count > 0 && tempChange < 0.0 || count < 0 && tempChange > 0.0;
     if (sound && ! goodChange) {
       // beep
@@ -67,5 +71,6 @@ void beepIfNeeded(int count) {
     }
     countdown = intervals[time_interval];
     tempChange = 0.0;
+    oldCount = count;
   }
 }

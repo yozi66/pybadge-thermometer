@@ -19,7 +19,7 @@ float tempChange;
 
 AverageTemp voltage;
 uint16_t light = 0;
-int time_interval = 3;
+int time_interval = 2;
 int lcd_brightness = 2;
 bool lcd_auto = true;
 int led_brightness = 3;
