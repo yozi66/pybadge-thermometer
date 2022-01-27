@@ -32,6 +32,8 @@ void measure_init() {
   }
   delay(300);
   buttons = last_buttons = 0;
+  voltage.hysteresis = 0.005;
+  voltage.old_wt = 7;
 }
 
 //---- measureTemperature ----

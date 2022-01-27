@@ -38,4 +38,8 @@ extern bool processInput();
 //---- action ----
 extern int updatePixels();
 
+//---- display ----
+extern void display_init();
+extern void updateDisplay();
+
 #endif
