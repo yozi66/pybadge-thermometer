@@ -12,12 +12,6 @@
 Adafruit_Arcada arcada; // cp437
 
 //---- data tables and constants ---
-uint16_t lcd_low[BR_SIZE] =     {0,  2,  10,  70,   500}; // thresholds to switch to lower lcd brightness
-uint16_t lcd_high[BR_SIZE] =    {2, 20, 140, 750, 65535}; // thresholds to switch to higher lcd brightness
-
-uint16_t led_low[LBR_SIZE] =         {0,  0,  4,  50,  200,   800}; // thresholds to switch to lower led brightness
-uint16_t led_high[LBR_SIZE] =        {0, 10, 50, 500,  900, 65535}; // thresholds to switch to higher led brightness
-
 int intervals[INTERVALS_SIZE] = {5, 15, 30, 60, 120, 180, 300};
 
 //---- data to display ----
@@ -44,30 +38,6 @@ void timercallback() {
   }
   analogWrite(13, 1); // weak red light on the LED
   measure = true;
-}
-
-//---- measureVoltage ----
-void measureVoltage() {
-  voltage.setTemp(arcada.readBatterySensor());
-}
-
-//---- measureLight ----
-void measureLight() {
-    light = arcada.readLightSensor();
-    if (lcd_auto) {
-      if (light > lcd_high[lcd_brightness]) {
-        lcd_brightness++;
-      } else if (light < lcd_low[lcd_brightness]) {
-        lcd_brightness--;
-      }
-    }
-    if (led_auto) {
-      if (light > led_high[led_brightness]) {
-        led_brightness++;
-      } else if (light < led_low[led_brightness]) {
-        led_brightness--;
-      }
-    }
 }
 
 //---- setup ----

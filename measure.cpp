@@ -15,6 +15,13 @@ DeviceAddress oneWire_addr;
 //---- buttons ----
 uint32_t buttons, last_buttons;
 
+//---- light levels ----
+uint16_t lcd_low[BR_SIZE] =     {0,  2,  10,  70,   500}; // thresholds to switch to lower lcd brightness
+uint16_t lcd_high[BR_SIZE] =    {2, 20, 140, 750, 65535}; // thresholds to switch to higher lcd brightness
+
+uint16_t led_low[LBR_SIZE] =         {0,  0,  4,  50,  200,   800}; // thresholds to switch to lower led brightness
+uint16_t led_high[LBR_SIZE] =        {0, 10, 50, 500,  900, 65535}; // thresholds to switch to higher led brightness
+
 //---- measure_init ----
 void measure_init() {
   ds18b20.begin();
@@ -34,6 +41,30 @@ void measure_init() {
   buttons = last_buttons = 0;
   voltage.hysteresis = 0.005;
   voltage.old_wt = 7;
+}
+
+//---- measureVoltage ----
+void measureVoltage() {
+  voltage.setTemp(arcada.readBatterySensor());
+}
+
+//---- measureLight ----
+void measureLight() {
+    light = arcada.readLightSensor();
+    if (lcd_auto) {
+      if (light > lcd_high[lcd_brightness]) {
+        lcd_brightness++;
+      } else if (light < lcd_low[lcd_brightness]) {
+        lcd_brightness--;
+      }
+    }
+    if (led_auto) {
+      if (light > led_high[led_brightness]) {
+        led_brightness++;
+      } else if (light < led_low[led_brightness]) {
+        led_brightness--;
+      }
+    }
 }
 
 //---- measureTemperature ----

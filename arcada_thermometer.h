@@ -34,6 +34,8 @@ extern void measure_init();
 extern void measureTemperature();
 extern void printTemperature();
 extern bool processInput();
+extern void measureVoltage();
+extern void measureLight();
 
 //---- action ----
 extern int updatePixels();
