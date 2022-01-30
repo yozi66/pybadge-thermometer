@@ -21,8 +21,8 @@ char oldLastDigit;
 
 //---- voltage level thresholds ----
 #define VOLTAGES_SIZE 6
-// display state ->            RED    0    1    2    3    4   +
-float voltages[VOLTAGES_SIZE] = { 3.45, 3.6, 3.75, 3.9, 4.04, 4.18 };
+// display state ->            RED     0     1     2     3     4    +
+float voltages[VOLTAGES_SIZE] = { 3.41, 3.50, 3.67, 3.84, 4.01, 4.18 };
 
 //---- display_init ----
 
@@ -77,7 +77,7 @@ void drawBattery(float vbat) {
   uint16_t color = vbat < voltages[0] ? ARCADA_RED : ARCADA_GREEN;
   arcada.display->setTextColor(color, ARCADA_BLACK);
   arcada.display->print(vbat); arcada.display->println("V");
-  float percentage = (vbat - 3.31) / 0.88 * 100;
+  float percentage = (vbat - 3.32) / 0.86 * 100;
   percentage = max(0.0, percentage);
   percentage = min(100.0, percentage);
   arcada.display->setCursor(54, 4);
