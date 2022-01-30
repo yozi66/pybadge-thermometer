@@ -60,24 +60,26 @@ bool goodChange() {
 
 //---- beepIfNeeded ----
 void beepIfNeeded(int count) {
-  if (count == 0) {
-    // hide the counter
+  if (count == 0 || goodChange()) {
+    // hide counter
     bellCountdown = -1;
-    oldCount = 0;
-  } else if (bellCountdown <= 0 || count > 0 && count > oldCount || count < 0 && count < oldCount) {
+  } else if (bellCountdown == -1 && count != 0) {
+    // start the counter
+    bellCountdown = intervals[time_interval];
+  } else if (bellCountdown == 0 || count > 0 && count > oldCount || count < 0 && count < oldCount) {
     // the bell counter has finished or a new LED is on
-    if (sound && ! goodChange()) {
+    if (sound) {
       // beep
       arcada.enableSpeaker(true);
       play_tune(audio, sizeof(audio));
       arcada.enableSpeaker(false);
     }
     bellCountdown = intervals[time_interval];
-    oldCount = count;
   }
   if (changeCountdown == 0) {
     // hide the change counter and the tempChange mark
     tempChange = 0.0;
     changeCountdown = -1;
   }
+  oldCount = count;
 }

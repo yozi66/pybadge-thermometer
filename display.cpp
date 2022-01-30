@@ -126,7 +126,7 @@ void updateDisplay() {
   if (bellCountdown < 0) {
     arcada.display->print("   ");
   } else {
-    arcada.display->setTextColor(bellCountdown > changeCountdown || ! goodChange() ? ARCADA_YELLOW : ARCADA_GREEN, ARCADA_BLACK);
+    arcada.display->setTextColor(ARCADA_YELLOW, ARCADA_BLACK);
     arcada.display->printf("%3d", bellCountdown);
   }
   arcada.display->setTextSize(1);
