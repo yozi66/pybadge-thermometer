@@ -36,6 +36,8 @@ void measure_init() {
     delay(750);
     avgTemp.setTemp(ds18b20.getTempC(oneWire_addr));
     printTemperature();
+    tempChange = 0.0;
+    changeCountdown = -1;
   }
   delay(300);
   buttons = last_buttons = 0;
@@ -91,8 +93,11 @@ bool processInput() {
   if (justPressed(ARCADA_BUTTONMASK_B)) {
     if (time_interval > 0) {
       time_interval--;
-      if (intervals[time_interval] < countdown) {
-        countdown = intervals[time_interval];
+      if (intervals[time_interval] < bellCountdown) {
+        bellCountdown = intervals[time_interval];
+      }
+      if (intervals[time_interval] < changeCountdown) {
+        changeCountdown = intervals[time_interval];
       }
     } else {
       sound = ! sound;

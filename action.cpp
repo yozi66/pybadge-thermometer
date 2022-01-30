@@ -52,25 +52,32 @@ void play_tune(const uint8_t *audio, uint32_t audio_length) {
   }
 }
 
+//---- goodChange ----
+bool goodChange() {
+  float delta = avgTemp.temp_disp - (t_set / 2.0);
+  return delta > 0.0 && tempChange < 0.0 || delta < 0.0 && tempChange > 0.0;
+}
+
 //---- beepIfNeeded ----
 void beepIfNeeded(int count) {
-  if (countdown < 0 && tempChange != 0.0) {
-    // start the counter to hide the tempChange mark later
-    countdown = intervals[time_interval];
-  } else if (count  == 0 && countdown == 0) {
-    // silently hide both the tempChange mark and the counter
-    tempChange = 0.0;
-    countdown = -1;
-  } else if (count != 0 && (countdown <= 0 || count > 0 && count > oldCount || count < 0 && count < oldCount)) {
-    bool goodChange = count > 0 && tempChange < 0.0 || count < 0 && tempChange > 0.0;
-    if (sound && ! goodChange) {
+  if (count == 0) {
+    // hide the counter
+    bellCountdown = -1;
+    oldCount = 0;
+  } else if (bellCountdown <= 0 || count > 0 && count > oldCount || count < 0 && count < oldCount) {
+    // the bell counter has finished or a new LED is on
+    if (sound && ! goodChange()) {
       // beep
       arcada.enableSpeaker(true);
       play_tune(audio, sizeof(audio));
       arcada.enableSpeaker(false);
     }
-    countdown = intervals[time_interval];
-    tempChange = 0.0;
+    bellCountdown = intervals[time_interval];
     oldCount = count;
+  }
+  if (changeCountdown == 0) {
+    // hide the change counter and the tempChange mark
+    tempChange = 0.0;
+    changeCountdown = -1;
   }
 }

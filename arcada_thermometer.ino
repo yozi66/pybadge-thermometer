@@ -25,14 +25,18 @@ bool lcd_auto = true;
 int led_brightness = 3;
 bool led_auto = true;
 bool sound = true;
-volatile int countdown = intervals[time_interval];
+volatile int changeCountdown = -1;
+volatile int bellCountdown   = intervals[time_interval];
 
 //---- timer callback ----
 // This function is called every second
 volatile bool measure = true;
 void timercallback() {
-  if (countdown > 0) {
-    countdown--;
+  if (changeCountdown > 0) {
+    changeCountdown--;
+  }
+  if (bellCountdown > 0) {
+    bellCountdown--;
   }
   analogWrite(13, 1); // weak red light on the LED
   measure = true;

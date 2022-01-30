@@ -27,7 +27,8 @@ extern int led_brightness;
 extern bool led_auto;
 
 //---- timer ----
-extern volatile int countdown;
+extern volatile int changeCountdown;
+extern volatile int bellCountdown;
 
 //---- measure ----
 extern void measure_init();
@@ -38,6 +39,7 @@ extern void measureVoltage();
 extern void measureLight();
 
 //---- action ----
+extern bool goodChange();
 extern int updatePixels();
 extern void beepIfNeeded(int count);
 

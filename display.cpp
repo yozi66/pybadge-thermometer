@@ -62,8 +62,10 @@ void printTemperature() {
     tempChange = avgTemp.temp_disp - oldTemp;
     oldTemp = avgTemp.temp_disp;
     printArrow(tempChange > 0 ? UP_ARROW : DOWN_ARROW);
+    changeCountdown = intervals[time_interval]; // (re)start the change counter to hide the tempChange mark later
   } else if (tempChange == 0.0) {
     printArrow(' '); // clear the arrow
+    changeCountdown = -1;
   }
   arcada.display->setCursor(108, 48);
   arcada.display->setTextSize(1);
@@ -118,14 +120,14 @@ void updateDisplay() {
   arcada.display->setCursor(42, 14);
   arcada.display->printf("%7.2f", avgTemp.temp_curr);
 
-  // countdown
+  // bell countdown
   arcada.display->setCursor(48, 96);
   arcada.display->setTextSize(2);
-  if (countdown < 0) {
+  if (bellCountdown < 0) {
     arcada.display->print("   ");
   } else {
-    arcada.display->setTextColor(ARCADA_YELLOW, ARCADA_BLACK);
-    arcada.display->printf("%3d", countdown);
+    arcada.display->setTextColor(bellCountdown > changeCountdown || ! goodChange() ? ARCADA_YELLOW : ARCADA_GREEN, ARCADA_BLACK);
+    arcada.display->printf("%3d", bellCountdown);
   }
   arcada.display->setTextSize(1);
 
@@ -133,6 +135,15 @@ void updateDisplay() {
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
   arcada.display->setCursor(light > 9999 ? 0 : 6, 128);
   arcada.display->printf("%-4d", light);
+
+  // change countdown
+  arcada.display->setCursor(108, 128);
+  arcada.display->setTextSize(1);
+  if (changeCountdown < 0) {
+    arcada.display->print("   ");
+  } else {
+    arcada.display->printf("%3d", changeCountdown);
+  }
 
   // speaker flag
   arcada.display->setTextColor(sound ? ARCADA_GREEN : ARCADA_DARKGREEN, ARCADA_BLACK);
