@@ -22,7 +22,7 @@ char oldLastDigit;
 //---- voltage level thresholds ----
 #define VOLTAGES_SIZE 6
 // display state ->            RED     0     1     2     3     4    +
-float voltages[VOLTAGES_SIZE] = { 3.41, 3.50, 3.67, 3.84, 4.01, 4.18 };
+float voltages[VOLTAGES_SIZE] = { 3.374, 3.43, 3.64, 3.86, 4.07, 4.18 };
 
 //---- display_init ----
 
