@@ -16,11 +16,11 @@ DeviceAddress oneWire_addr;
 uint32_t buttons, last_buttons;
 
 //---- light levels ----
-uint16_t lcd_low[BR_SIZE] =       {0,  0,   3,  40,   500}; // thresholds to switch to lower lcd brightness
-uint16_t lcd_high[BR_SIZE] =      {0,  4,  60, 750, 65535}; // thresholds to switch to higher lcd brightness
+uint16_t lcd_low[BR_SIZE] =       {0,  0,   3,  60,   600}; // thresholds to switch to lower lcd brightness
+uint16_t lcd_high[BR_SIZE] =      {0,  4,  80, 800, 65535}; // thresholds to switch to higher lcd brightness
 
-uint16_t led_low[LBR_SIZE] =  {0,  0, 10,  40, 160,   600}; // thresholds to switch to lower led brightness
-uint16_t led_high[LBR_SIZE] = {0, 15, 60, 240, 900, 65535}; // thresholds to switch to higher led brightness
+uint16_t led_low[LBR_SIZE] =  {0,  0, 12,  45, 180,   675}; // thresholds to switch to lower led brightness
+uint16_t led_high[LBR_SIZE] = {0, 16, 60, 240, 900, 65535}; // thresholds to switch to higher led brightness
 
 //---- measure_init ----
 void measure_init() {
