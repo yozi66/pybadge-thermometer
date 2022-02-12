@@ -26,6 +26,7 @@ extern bool lcd_auto;
 extern int led_brightness;
 extern bool led_auto;
 extern bool countdown;
+extern bool dim;
 
 //---- timer ----
 extern volatile int changeCountdown;

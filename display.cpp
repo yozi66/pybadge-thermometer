@@ -107,7 +107,11 @@ void drawBattery(float vbat) {
 
 //---- updateDisplay ----
 void updateDisplay() {
-  arcada.setBacklight(brightness_table[lcd_brightness]);
+  int brite = lcd_brightness;
+  if (lcd_auto && dim && brite > 0) {
+    brite--;
+  }
+  arcada.setBacklight(brightness_table[brite]);
 
   // first line
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
@@ -156,7 +160,7 @@ void updateDisplay() {
   arcada.display->printf("%3ds", intervals[time_interval]);
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
   arcada.display->setCursor(40, 148);
-  arcada.display->printf("lcd:%1d%c", lcd_brightness + 1, lcd_auto ? 'A' : ' ');
+  arcada.display->printf("lcd:%1d%c", lcd_brightness + (dim && lcd_auto ? 0 : 1), lcd_auto ? dim ? 'd' : 'A' : ' ');
   arcada.display->setCursor(90, 148);
   arcada.display->printf("led:%1d%c", led_brightness, led_auto ? 'A' : ' ');
 

@@ -122,7 +122,9 @@ bool processInput() {
     t_set--;
   }
   if (justPressed(ARCADA_BUTTONMASK_RIGHT)) {
-    if (lcd_brightness < BR_SIZE - 1) {
+    if (dim) {
+      dim = false;
+    } else if (lcd_brightness < BR_SIZE - 1) {
       lcd_brightness++;
       lcd_auto = false;
     } else {
@@ -130,8 +132,13 @@ bool processInput() {
     }
   }
   if (justPressed(ARCADA_BUTTONMASK_LEFT)) {
-    if (lcd_brightness > 0) {
+    if (! dim) {
+      dim = true;
+    } else if (lcd_brightness > 0) {
       lcd_brightness--;
+      if (lcd_auto && lcd_brightness > 0) {
+        lcd_brightness--;
+      }
       lcd_auto = false;
     } else {
       lcd_auto = true;

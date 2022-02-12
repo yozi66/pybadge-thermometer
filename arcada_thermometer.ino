@@ -22,6 +22,7 @@ uint16_t light = 0;
 int time_interval = 2;
 int lcd_brightness = 2;
 bool lcd_auto = true;
+bool dim = false;
 int led_brightness = 3;
 bool led_auto = true;
 bool sound = true;
