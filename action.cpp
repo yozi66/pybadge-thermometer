@@ -17,9 +17,10 @@ uint32_t PX_CYAN = arcada.pixels.Color(0,1,1);
 uint32_t PX_BLUE = arcada.pixels.Color(0,0,1);
 uint32_t PX_BLACK = arcada.pixels.Color(0,0,0);
 
-//---- LED count memory ----
+//---- previous values for change detection ----
 
 int oldCount = 0;
+bool startup = true;
 
 //---- updatePixels ----
 int updatePixels() {
@@ -58,23 +59,34 @@ bool goodChange() {
   return delta > 0.0 && tempChange < 0.0 || delta < 0.0 && tempChange > 0.0;
 }
 
+//---- badChange ----
+bool badChange() {
+  float delta = avgTemp.temp_disp - (t_set / 2.0);
+  return delta > 0.0 && tempChange > 0.0 || delta < 0.0 && tempChange < 0.0;
+}
+
 //---- beepIfNeeded ----
 void beepIfNeeded(int count) {
+  bool beepNow = false;
   if (count == 0 || goodChange()) {
     // hide counter
     bellCountdown = -1;
   } else if (bellCountdown == -1 && count != 0) {
     // start the counter
     bellCountdown = intervals[time_interval];
+    beepNow = oldCount == 0 || badChange();
   } else if (bellCountdown == 0 || count > 0 && count > oldCount || count < 0 && count < oldCount) {
     // the bell counter has finished or a new LED is on
-    if (sound) {
-      // beep
-      arcada.enableSpeaker(true);
-      play_tune(audio, sizeof(audio));
-      arcada.enableSpeaker(false);
+    if (!startup) {
+      beepNow = true;
     }
     bellCountdown = intervals[time_interval];
+  }
+  if (sound && beepNow) {
+    // beep
+    arcada.enableSpeaker(true);
+    play_tune(audio, sizeof(audio));
+    arcada.enableSpeaker(false);
   }
   if (changeCountdown == 0) {
     // hide the change counter and the tempChange mark
@@ -82,4 +94,5 @@ void beepIfNeeded(int count) {
     changeCountdown = -1;
   }
   oldCount = count;
+  startup = false;
 }
