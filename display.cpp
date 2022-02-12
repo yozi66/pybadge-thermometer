@@ -123,7 +123,7 @@ void updateDisplay() {
   // bell countdown
   arcada.display->setCursor(48, 96);
   arcada.display->setTextSize(2);
-  if (bellCountdown < 0) {
+  if (bellCountdown < 0 || ! countdown) {
     arcada.display->print("   ");
   } else {
     arcada.display->setTextColor(ARCADA_YELLOW, ARCADA_BLACK);
@@ -151,9 +151,10 @@ void updateDisplay() {
   arcada.display->print(speaker);
 
   // last row
-  arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
+  arcada.display->setTextColor(countdown ? ARCADA_GREEN : ARCADA_DARKGREEN, ARCADA_BLACK);
   arcada.display->setCursor(0, 148);
   arcada.display->printf("%3ds", intervals[time_interval]);
+  arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
   arcada.display->setCursor(40, 148);
   arcada.display->printf("lcd:%1d%c", lcd_brightness + 1, lcd_auto ? 'A' : ' ');
   arcada.display->setCursor(90, 148);

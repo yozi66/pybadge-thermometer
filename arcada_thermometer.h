@@ -13,7 +13,7 @@ extern float tempChange;
 //---- config ----
 #define BR_SIZE 5
 #define LBR_SIZE 6
-#define INTERVALS_SIZE 7
+#define INTERVALS_SIZE 5
 extern int intervals[];
 
 //---- settings ----
@@ -25,6 +25,7 @@ extern int lcd_brightness;
 extern bool lcd_auto;
 extern int led_brightness;
 extern bool led_auto;
+extern bool countdown;
 
 //---- timer ----
 extern volatile int changeCountdown;

@@ -80,18 +80,30 @@ bool justPressed(uint32_t mask) {
   return (buttons & mask) && ! (last_buttons & mask);
 }
 
+void toggle() {
+  if (sound) {
+    sound = false;
+  } else if (countdown) {
+    countdown = false;
+  } else {
+    sound = true;
+    countdown = true;
+    bellCountdown = intervals[time_interval];
+  }
+}
+
 bool processInput() {
   buttons = arcada.readButtons();
   // Serial.printf("buttons: %x, ", buttons)
   if (justPressed(ARCADA_BUTTONMASK_A)) {
-    if (time_interval < INTERVALS_SIZE - 1) {
+    if (time_interval < INTERVALS_SIZE - 1 && countdown) {
       time_interval++;
     } else {
-      sound = ! sound;
+      toggle();
     }
   }
   if (justPressed(ARCADA_BUTTONMASK_B)) {
-    if (time_interval > 0) {
+    if (time_interval > 0 && countdown) {
       time_interval--;
       if (intervals[time_interval] < bellCountdown) {
         bellCountdown = intervals[time_interval];
@@ -100,7 +112,7 @@ bool processInput() {
         changeCountdown = intervals[time_interval];
       }
     } else {
-      sound = ! sound;
+      toggle();
     }
   }
   if (justPressed(ARCADA_BUTTONMASK_START)) {

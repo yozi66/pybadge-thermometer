@@ -10,7 +10,7 @@
 Adafruit_Arcada arcada; // cp437
 
 //---- data tables and constants ---
-int intervals[INTERVALS_SIZE] = {5, 15, 30, 60, 120, 180, 300};
+int intervals[INTERVALS_SIZE] = {10, 30, 60, 120, 300};
 
 //---- data to display ----
 int t_set = 43; // in half degrees Celsius
@@ -27,6 +27,7 @@ bool led_auto = true;
 bool sound = true;
 volatile int changeCountdown = -1;
 volatile int bellCountdown   = intervals[time_interval];
+bool countdown = true;
 
 //---- timer callback ----
 // This function is called every second
