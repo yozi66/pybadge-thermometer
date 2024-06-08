@@ -52,7 +52,8 @@ void printArrow(char arrow) {
 //---- printTemperature ----
 // side effect: set tempChange on visible change
 void printTemperature() {
-  snprintf(tempStr, BUFSIZE, "%4.1f", avgTemp.temp_disp);
+  const char * format = avgTemp.temp_disp < -10 ? "%4.0f" : "%4.1f";
+  snprintf(tempStr, BUFSIZE, format, avgTemp.temp_disp);
   bool visibleChange = tempStr[3] != oldLastDigit;
   oldLastDigit = tempStr[3];
   arcada.display->setCursor(12, 48);
@@ -62,7 +63,7 @@ void printTemperature() {
     tempChange = avgTemp.temp_disp - oldTemp;
     oldTemp = avgTemp.temp_disp;
     printArrow(tempChange > 0 ? UP_ARROW : DOWN_ARROW);
-    changeCountdown = intervals[time_interval]; // (re)start the change counter to hide the tempChange mark later
+    changeCountdown = intervals[atConfig.time_interval]; // (re)start the change counter to hide the tempChange mark later
   } else if (tempChange == 0.0) {
     printArrow(' '); // clear the arrow
     changeCountdown = -1;
@@ -107,8 +108,8 @@ void drawBattery(float vbat) {
 
 //---- updateDisplay ----
 void updateDisplay() {
-  int brite = lcd_brightness;
-  if (lcd_auto && dim && brite > 0) {
+  int brite = atConfig.lcd_brightness;
+  if (atConfig.lcd_auto && atConfig.dim && brite > 0) {
     brite--;
   }
   arcada.setBacklight(brightness_table[brite]);
@@ -116,7 +117,7 @@ void updateDisplay() {
   // first line
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
   arcada.display->setCursor(0, 4);
-  arcada.display->printf("%5.1f" "\xF8" "C", t_set / 2.0);
+  arcada.display->printf("%5.1f" "\xF8" "C", atConfig.t_set / 2.0);
   drawBattery(voltage.temp_disp);
 
   // current temp
@@ -127,7 +128,7 @@ void updateDisplay() {
   // bell countdown
   arcada.display->setCursor(48, 96);
   arcada.display->setTextSize(2);
-  if (bellCountdown < 0 || ! countdown) {
+  if (bellCountdown < 0 || ! atConfig.countdown) {
     arcada.display->print("   ");
   } else {
     arcada.display->setTextColor(ARCADA_YELLOW, ARCADA_BLACK);
@@ -150,19 +151,19 @@ void updateDisplay() {
   }
 
   // speaker flag
-  arcada.display->setTextColor(sound ? ARCADA_GREEN : ARCADA_DARKGREEN, ARCADA_BLACK);
+  arcada.display->setTextColor(atConfig.sound ? ARCADA_GREEN : ARCADA_DARKGREEN, ARCADA_BLACK);
   arcada.display->setCursor(6, 14);
   arcada.display->print(speaker);
 
   // last row
-  arcada.display->setTextColor(countdown ? ARCADA_GREEN : ARCADA_DARKGREEN, ARCADA_BLACK);
+  arcada.display->setTextColor(atConfig.countdown ? ARCADA_GREEN : ARCADA_DARKGREEN, ARCADA_BLACK);
   arcada.display->setCursor(0, 148);
-  arcada.display->printf("%3ds", intervals[time_interval]);
+  arcada.display->printf("%3ds", intervals[atConfig.time_interval]);
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
   arcada.display->setCursor(40, 148);
-  arcada.display->printf("lcd:%1d%c", lcd_brightness + (dim && lcd_auto ? 0 : 1), lcd_auto ? dim ? 'd' : 'A' : ' ');
+  arcada.display->printf("lcd:%1d%c", atConfig.lcd_brightness + (atConfig.dim && atConfig.lcd_auto ? 0 : 1), atConfig.lcd_auto ? atConfig.dim ? 'd' : 'A' : ' ');
   arcada.display->setCursor(90, 148);
-  arcada.display->printf("led:%1d%c", led_brightness, led_auto ? 'A' : ' ');
+  arcada.display->printf("led:%1d%c", atConfig.led_brightness, atConfig.led_auto ? 'A' : ' ');
 
   // average temperature
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);

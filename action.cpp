@@ -24,11 +24,11 @@ bool startup = true;
 
 //---- updatePixels ----
 int updatePixels() {
-  float delta = avgTemp.temp_disp - (t_set / 2.0);
+  float delta = avgTemp.temp_disp - (atConfig.t_set / 2.0);
   uint32_t color = (delta > 0
       ? (tempChange >= 0.0 ? PX_RED : PX_YELLOW)
       : (tempChange <= 0.0 ? PX_BLUE : PX_GREEN)
-      ) * led_brightness_table[led_brightness];
+      ) * led_brightness_table[atConfig.led_brightness];
   int count = delta / 0.5;
   int absCount = abs(count);
   arcada.pixels.setPixelColor(2, absCount > 0 ? color : PX_BLACK);
@@ -55,13 +55,13 @@ void play_tune(const uint8_t *audio, uint32_t audio_length) {
 
 //---- goodChange ----
 bool goodChange() {
-  float delta = avgTemp.temp_disp - (t_set / 2.0);
+  float delta = avgTemp.temp_disp - (atConfig.t_set / 2.0);
   return delta > 0.0 && tempChange < 0.0 || delta < 0.0 && tempChange > 0.0;
 }
 
 //---- badChange ----
 bool badChange() {
-  float delta = avgTemp.temp_disp - (t_set / 2.0);
+  float delta = avgTemp.temp_disp - (atConfig.t_set / 2.0);
   return delta > 0.0 && tempChange > 0.0 || delta < 0.0 && tempChange < 0.0;
 }
 
@@ -73,16 +73,16 @@ void beepIfNeeded(int count) {
     bellCountdown = -1;
   } else if (bellCountdown == -1 && count != 0) {
     // start the counter
-    bellCountdown = intervals[time_interval];
+    bellCountdown = intervals[atConfig.time_interval];
     beepNow = oldCount == 0 || badChange();
   } else if (bellCountdown == 0 || count > 0 && count > oldCount || count < 0 && count < oldCount) {
     // the bell counter has finished or a new LED is on
     if (!startup) {
       beepNow = true;
     }
-    bellCountdown = intervals[time_interval];
+    bellCountdown = intervals[atConfig.time_interval];
   }
-  if (sound && beepNow) {
+  if (atConfig.sound && beepNow) {
     // beep
     arcada.enableSpeaker(true);
     play_tune(audio, sizeof(audio));

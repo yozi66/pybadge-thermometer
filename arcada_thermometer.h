@@ -1,6 +1,8 @@
 #ifndef ARCADA_THERMOMETER
 #define ARCADA_THERMOMETER
 
+#include "ATConfig.h"
+
 //---- arcada ----
 extern Adafruit_Arcada arcada; // cp437
 
@@ -17,16 +19,7 @@ extern float tempChange;
 extern int intervals[];
 
 //---- settings ----
-extern int t_set; // in half degrees Celsius
-extern bool sound;
-extern bool lcd_auto;
-extern int time_interval;
-extern int lcd_brightness;
-extern bool lcd_auto;
-extern int led_brightness;
-extern bool led_auto;
-extern bool countdown;
-extern bool dim;
+extern ATConfig atConfig;
 
 //---- timer ----
 extern volatile int changeCountdown;

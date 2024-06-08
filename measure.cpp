@@ -53,18 +53,18 @@ void measureVoltage() {
 //---- measureLight ----
 void measureLight() {
     light = arcada.readLightSensor();
-    if (lcd_auto) {
-      if (light > lcd_high[lcd_brightness]) {
-        lcd_brightness++;
-      } else if (light < lcd_low[lcd_brightness]) {
-        lcd_brightness--;
+    if (atConfig.lcd_auto) {
+      if (light > lcd_high[atConfig.lcd_brightness]) {
+        atConfig.lcd_brightness++;
+      } else if (light < lcd_low[atConfig.lcd_brightness]) {
+        atConfig.lcd_brightness--;
       }
     }
-    if (led_auto) {
-      if (light > led_high[led_brightness]) {
-        led_brightness++;
-      } else if (light < led_low[led_brightness]) {
-        led_brightness--;
+    if (atConfig.led_auto) {
+      if (light > led_high[atConfig.led_brightness]) {
+        atConfig.led_brightness++;
+      } else if (light < led_low[atConfig.led_brightness]) {
+        atConfig.led_brightness--;
       }
     }
 }
@@ -81,14 +81,14 @@ bool justPressed(uint32_t mask) {
 }
 
 void toggle() {
-  if (sound) {
-    sound = false;
-  } else if (countdown) {
-    countdown = false;
+  if (atConfig.sound) {
+    atConfig.sound = false;
+  } else if (atConfig.countdown) {
+    atConfig.countdown = false;
   } else {
-    sound = true;
-    countdown = true;
-    bellCountdown = intervals[time_interval];
+    atConfig.sound = true;
+    atConfig.countdown = true;
+    bellCountdown = intervals[atConfig.time_interval];
   }
 }
 
@@ -96,68 +96,68 @@ bool processInput() {
   buttons = arcada.readButtons();
   // Serial.printf("buttons: %x, ", buttons)
   if (justPressed(ARCADA_BUTTONMASK_A)) {
-    if (time_interval < INTERVALS_SIZE - 1 && countdown) {
-      time_interval++;
+    if (atConfig.time_interval < INTERVALS_SIZE - 1 && atConfig.countdown) {
+      atConfig.time_interval++;
     } else {
       toggle();
     }
   }
   if (justPressed(ARCADA_BUTTONMASK_B)) {
-    if (time_interval > 0 && countdown) {
-      time_interval--;
-      if (intervals[time_interval] < bellCountdown) {
-        bellCountdown = intervals[time_interval];
+    if (atConfig.time_interval > 0 && atConfig.countdown) {
+      atConfig.time_interval--;
+      if (intervals[atConfig.time_interval] < bellCountdown) {
+        bellCountdown = intervals[atConfig.time_interval];
       }
-      if (intervals[time_interval] < changeCountdown) {
-        changeCountdown = intervals[time_interval];
+      if (intervals[atConfig.time_interval] < changeCountdown) {
+        changeCountdown = intervals[atConfig.time_interval];
       }
     } else {
       toggle();
     }
   }
   if (justPressed(ARCADA_BUTTONMASK_START)) {
-    t_set++;
+    atConfig.t_set++;
   }
   if (justPressed(ARCADA_BUTTONMASK_SELECT)) {
-    t_set--;
+    atConfig.t_set--;
   }
   if (justPressed(ARCADA_BUTTONMASK_RIGHT)) {
-    if (dim) {
-      dim = false;
-    } else if (lcd_brightness < BR_SIZE - 1) {
-      lcd_brightness++;
-      lcd_auto = false;
+    if (atConfig.dim) {
+      atConfig.dim = false;
+    } else if (atConfig.lcd_brightness < BR_SIZE - 1) {
+      atConfig.lcd_brightness++;
+      atConfig.lcd_auto = false;
     } else {
-      lcd_auto = true;
+      atConfig.lcd_auto = true;
     }
   }
   if (justPressed(ARCADA_BUTTONMASK_LEFT)) {
-    if (! dim) {
-      dim = true;
-    } else if (lcd_brightness > 0) {
-      lcd_brightness--;
-      if (lcd_auto && lcd_brightness > 0) {
-        lcd_brightness--;
+    if (! atConfig.dim) {
+      atConfig.dim = true;
+    } else if (atConfig.lcd_brightness > 0) {
+      atConfig.lcd_brightness--;
+      if (atConfig.lcd_auto && atConfig.lcd_brightness > 0) {
+        atConfig.lcd_brightness--;
       }
-      lcd_auto = false;
+      atConfig.lcd_auto = false;
     } else {
-      lcd_auto = true;
+      atConfig.lcd_auto = true;
     }
   }
   if (justPressed(ARCADA_BUTTONMASK_DOWN)) {
-    if (led_brightness < LBR_SIZE - 1) {
-      led_brightness++;
-      led_auto = false;
+    if (atConfig.led_brightness < LBR_SIZE - 1) {
+      atConfig.led_brightness++;
+      atConfig.led_auto = false;
     } else {
-      led_auto = true;
+      atConfig.led_auto = true;
     }
   }
   if (justPressed(ARCADA_BUTTONMASK_UP)) {
-    if (led_brightness > 0) {
-      led_brightness--;
-      led_auto = false;
+    if (atConfig.led_brightness > 0) {
+      atConfig.led_brightness--;
+      atConfig.led_auto = false;
     } else {
-      led_auto = true;
+      atConfig.led_auto = true;
     }
   }
   last_buttons = buttons;

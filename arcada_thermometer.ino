@@ -1,5 +1,6 @@
 #include <Adafruit_Arcada.h>
 #include "AverageTemp.h"
+#include "ATConfig.h"
 
 #include "arcada_thermometer.h"
 
@@ -13,22 +14,18 @@ Adafruit_Arcada arcada; // cp437
 int intervals[INTERVALS_SIZE] = {10, 30, 60, 120, 300};
 
 //---- data to display ----
-int t_set = 43; // in half degrees Celsius
 AverageTemp avgTemp;
 float tempChange;
 
+//---- settings ----
+ATConfig atConfig;
+
+//---- measurements --
 AverageTemp voltage;
 uint16_t light = 0;
-int time_interval = 2;
-int lcd_brightness = 2;
-bool lcd_auto = true;
-bool dim = false;
-int led_brightness = 3;
-bool led_auto = true;
-bool sound = true;
+
 volatile int changeCountdown = -1;
-volatile int bellCountdown   = intervals[time_interval];
-bool countdown = true;
+volatile int bellCountdown   = intervals[atConfig.time_interval];
 
 //---- timer callback ----
 // This function is called every second
