@@ -70,10 +70,7 @@ void loop() {
     measureVoltage();
     measureLight();
     measure = false;
-    update_data = true;
-  }
-  update_data |= processInput();
-  if (update_data) {
+    processInput();
     updateDisplay();
     int count = updatePixels();
     beepIfNeeded(count);

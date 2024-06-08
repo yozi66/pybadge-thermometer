@@ -13,7 +13,7 @@ DallasTemperature ds18b20(&oneWire);
 DeviceAddress oneWire_addr;
 
 //---- buttons ----
-uint32_t buttons, last_buttons;
+uint32_t buttons;
 
 //---- light levels ----
 uint16_t lcd_low[BR_SIZE] =       {0,  0,   3,  60,   600}; // thresholds to switch to lower lcd brightness
@@ -40,7 +40,6 @@ void measure_init() {
     changeCountdown = -1;
   }
   delay(300);
-  buttons = last_buttons = 0;
   voltage.hysteresis = 0.005;
   voltage.old_wt = 7;
 }
@@ -77,7 +76,7 @@ void measureTemperature() {
 
 //---- processInput ----
 bool justPressed(uint32_t mask) {
-  return (buttons & mask) && ! (last_buttons & mask);
+  return buttons & mask;
 }
 
 void toggle() {
@@ -94,7 +93,6 @@ void toggle() {
 
 bool processInput() {
   buttons = arcada.readButtons();
-  // Serial.printf("buttons: %x, ", buttons)
   if (justPressed(ARCADA_BUTTONMASK_A)) {
     if (atConfig.time_interval < INTERVALS_SIZE - 1 && atConfig.countdown) {
       atConfig.time_interval++;
@@ -121,7 +119,7 @@ bool processInput() {
   if (justPressed(ARCADA_BUTTONMASK_SELECT)) {
     atConfig.t_set--;
   }
-  if (justPressed(ARCADA_BUTTONMASK_RIGHT)) {
+  if (justPressed(ARCADA_BUTTONMASK_RIGHT)) { // UP (due to rotated screen)
     if (atConfig.dim) {
       atConfig.dim = false;
     } else if (atConfig.lcd_brightness < BR_SIZE - 1) {
@@ -131,7 +129,7 @@ bool processInput() {
       atConfig.lcd_auto = true;
     }
   }
-  if (justPressed(ARCADA_BUTTONMASK_LEFT)) {
+  if (justPressed(ARCADA_BUTTONMASK_LEFT)) { // DOWN (due to rotated screen)
     if (! atConfig.dim) {
       atConfig.dim = true;
     } else if (atConfig.lcd_brightness > 0) {
@@ -144,7 +142,7 @@ bool processInput() {
       atConfig.lcd_auto = true;
     }
   }
-  if (justPressed(ARCADA_BUTTONMASK_DOWN)) {
+  if (justPressed(ARCADA_BUTTONMASK_DOWN)) { // RIGHT (due to rotated screen)
     if (atConfig.led_brightness < LBR_SIZE - 1) {
       atConfig.led_brightness++;
       atConfig.led_auto = false;
@@ -152,7 +150,7 @@ bool processInput() {
       atConfig.led_auto = true;
     }
   }
-  if (justPressed(ARCADA_BUTTONMASK_UP)) {
+  if (justPressed(ARCADA_BUTTONMASK_UP)) { // LEFT(due to rotated screen)
     if (atConfig.led_brightness > 0) {
       atConfig.led_brightness--;
       atConfig.led_auto = false;
@@ -160,6 +158,5 @@ bool processInput() {
       atConfig.led_auto = true;
     }
   }
-  last_buttons = buttons;
-  return buttons;
+  return arcada.justPressedButtons();
 }
