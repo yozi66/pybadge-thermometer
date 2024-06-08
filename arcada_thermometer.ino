@@ -20,10 +20,11 @@ float tempChange;
 //---- settings ----
 ATConfig atConfig;
 
-//---- measurements --
+//---- measurements ----
 AverageTemp voltage;
 uint16_t light = 0;
 
+//---- timer ----
 volatile int changeCountdown = -1;
 volatile int bellCountdown   = intervals[atConfig.time_interval];
 

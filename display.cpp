@@ -3,6 +3,18 @@
 #include "AverageTemp.h"
 #include "arcada_thermometer.h"
 
+//---- menu ----
+#define MENU_OFF -1
+#define MENU_SAVE 0
+#define MENU_PROFILE 1
+#define MENU_LED 2
+#define MENU_SIZE 3
+
+#define MENU_TIME 10
+
+int menuSelected = MENU_OFF;
+int menuCountdown = MENU_TIME;
+
 //---- brightness ----
 
 int brightness_table[BR_SIZE] = {1,  4,  16,  64,   255};
@@ -120,6 +132,11 @@ void updateDisplay() {
   arcada.display->printf("%5.1f" "\xF8" "C", atConfig.t_set / 2.0);
   drawBattery(voltage.temp_disp);
 
+  // speaker flag
+  arcada.display->setTextColor(atConfig.sound ? ARCADA_GREEN : ARCADA_DARKGREEN, ARCADA_BLACK);
+  arcada.display->setCursor(6, 14);
+  arcada.display->print(speaker);
+
   // current temp
   arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
   arcada.display->setCursor(42, 14);
@@ -141,6 +158,11 @@ void updateDisplay() {
   arcada.display->setCursor(light > 9999 ? 0 : 6, 128);
   arcada.display->printf("%-4d", light);
 
+  // current profile
+  arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
+  arcada.display->setCursor(42, 128);
+  arcada.display->print(profiles[atConfig.getProfile()]);
+
   // change countdown
   arcada.display->setCursor(108, 128);
   arcada.display->setTextSize(1);
@@ -149,11 +171,6 @@ void updateDisplay() {
   } else {
     arcada.display->printf("%3d", changeCountdown);
   }
-
-  // speaker flag
-  arcada.display->setTextColor(atConfig.sound ? ARCADA_GREEN : ARCADA_DARKGREEN, ARCADA_BLACK);
-  arcada.display->setCursor(6, 14);
-  arcada.display->print(speaker);
 
   // last row
   arcada.display->setTextColor(atConfig.countdown ? ARCADA_GREEN : ARCADA_DARKGREEN, ARCADA_BLACK);

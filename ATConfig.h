@@ -4,6 +4,7 @@
 #include <ArduinoJson.h>
 
 #define AT_CONFIG_FILENAME "/at_config.json"
+
 #define NUM_PROFILES 4
 extern const char *profiles[NUM_PROFILES];
 
@@ -18,6 +19,7 @@ public:
   bool led_auto = true;
   bool sound = true;
   bool countdown = true;
+  int getProfile();
 private:
   int profile = 0;
   StaticJsonDocument<256> pbt_configJSON;
