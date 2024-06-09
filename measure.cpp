@@ -189,7 +189,7 @@ void menuvalue_up() {
   {
   case MENU_OFF:
     lcd_brightness_up();
-    break;
+    return; // do not menu_activate()
   case MENU_SAVE:
     atConfig.save(); // up = do save now
     menuSelected = MENU_OFF;
@@ -212,7 +212,7 @@ void menuvalue_down() {
   {
   case MENU_OFF:
     lcd_brightness_down();
-    break;
+    return; // do not menu_activate()
   case MENU_SAVE:
     // down = do not save
     menuSelected = MENU_OFF;

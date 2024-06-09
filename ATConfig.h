@@ -1,14 +1,16 @@
 #ifndef AT_CONFIG
 #define AT_CONFIG
 
-#include <ArduinoJson.h>
+#include <SdFat.h>
 
-#define AT_CONFIG_FILENAME "/at_config.json"
+#define AT_CONFIG_FILENAME "/at_config.txt"
 
 #define NUM_PROFILES 4
-extern const char *profiles[NUM_PROFILES];
+extern const char *profileNames[NUM_PROFILES];
 
-class ATConfig {
+#define ATCONFIG_BUFFER_SIZE 100
+
+class ATSimpleConfig {
 public:
   int t_set = 43; // in half degrees Celsius
   int time_interval = 2;
@@ -19,13 +21,25 @@ public:
   bool led_auto = true;
   bool sound = true;
   bool countdown = true;
+};
+
+class ATConfig : public ATSimpleConfig {
+
+public:
   int getProfile();
   void profile_up();
   void profile_down();
-  void save();
+  void load(const char *filename = AT_CONFIG_FILENAME);
+  void save(const char *filename = AT_CONFIG_FILENAME);
+
 private:
   int profile = 0;
-  StaticJsonDocument<256> pbt_configJSON;
+  ATSimpleConfig profiles[NUM_PROFILES];
+
+  void createDefaultConfig();
+  bool readConfig(const char *filename);
+  void readProfile(File file, int index);
+  void loadCurrentProfile();
 };
 
 #endif

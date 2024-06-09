@@ -180,7 +180,7 @@ void updateDisplay() {
   color = menuSelected == MENU_PROFILE ? ARCADA_YELLOW : ARCADA_GREEN;
   arcada.display->setTextColor(color, ARCADA_BLACK);
   arcada.display->setCursor(90, 132);
-  arcada.display->print(profiles[atConfig.getProfile()]);
+  arcada.display->print(profileNames[atConfig.getProfile()]);
 
   // countdown time_interval
   color = atConfig.countdown ? ARCADA_GREEN : ARCADA_DARKGREEN;
