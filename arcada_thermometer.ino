@@ -72,7 +72,7 @@ void loop() {
     measure = false;
     processInput();
     updateDisplay();
-    int count = updatePixels();
+    int count = updatePixels(); // update LEDs
     beepIfNeeded(count);
     analogWrite(13, 0); // LED OFF
   }

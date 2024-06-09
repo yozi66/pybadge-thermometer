@@ -79,7 +79,7 @@ bool justPressed(uint32_t mask) {
   return buttons & mask;
 }
 
-void toggle() {
+void toggle_sound() {
   if (atConfig.sound) {
     atConfig.sound = false;
   } else if (atConfig.countdown) {
@@ -91,27 +91,78 @@ void toggle() {
   }
 }
 
+void time_interval_up() {
+  if (atConfig.time_interval < INTERVALS_SIZE - 1 && atConfig.countdown) {
+    atConfig.time_interval++;
+  } else {
+    toggle_sound();
+  }
+}
+
+void time_interval_down() {
+  if (atConfig.time_interval > 0 && atConfig.countdown) {
+    atConfig.time_interval--;
+    if (intervals[atConfig.time_interval] < bellCountdown) {
+      bellCountdown = intervals[atConfig.time_interval];
+    }
+    if (intervals[atConfig.time_interval] < changeCountdown) {
+      changeCountdown = intervals[atConfig.time_interval];
+    }
+  } else {
+    toggle_sound();
+  }
+}
+
+void lcd_brightness_up() {
+  if (atConfig.dim) {
+    atConfig.dim = false;
+  } else if (atConfig.lcd_brightness < BR_SIZE - 1) {
+    atConfig.lcd_brightness++;
+    atConfig.lcd_auto = false;
+  } else {
+    atConfig.lcd_auto = true;
+  }
+}
+
+void lcd_brightness_down() {
+  if (! atConfig.dim) {
+    atConfig.dim = true;
+  } else if (atConfig.lcd_brightness > 0) {
+    atConfig.lcd_brightness--;
+    if (atConfig.lcd_auto && atConfig.lcd_brightness > 0) {
+      atConfig.lcd_brightness--;
+    }
+    atConfig.lcd_auto = false;
+  } else {
+    atConfig.lcd_auto = true;
+  }
+}
+
+void led_brightness_up() {
+  if (atConfig.led_brightness < LBR_SIZE - 1) {
+    atConfig.led_brightness++;
+    atConfig.led_auto = false;
+  } else {
+    atConfig.led_auto = true;
+  }
+}
+
+void led_brightness_down() {
+  if (atConfig.led_brightness > 0) {
+    atConfig.led_brightness--;
+    atConfig.led_auto = false;
+  } else {
+    atConfig.led_auto = true;
+  }
+}
+
 bool processInput() {
   buttons = arcada.readButtons();
   if (justPressed(ARCADA_BUTTONMASK_A)) {
-    if (atConfig.time_interval < INTERVALS_SIZE - 1 && atConfig.countdown) {
-      atConfig.time_interval++;
-    } else {
-      toggle();
-    }
+    time_interval_up();
   }
   if (justPressed(ARCADA_BUTTONMASK_B)) {
-    if (atConfig.time_interval > 0 && atConfig.countdown) {
-      atConfig.time_interval--;
-      if (intervals[atConfig.time_interval] < bellCountdown) {
-        bellCountdown = intervals[atConfig.time_interval];
-      }
-      if (intervals[atConfig.time_interval] < changeCountdown) {
-        changeCountdown = intervals[atConfig.time_interval];
-      }
-    } else {
-      toggle();
-    }
+    time_interval_down();
   }
   if (justPressed(ARCADA_BUTTONMASK_START)) {
     atConfig.t_set++;
@@ -120,43 +171,16 @@ bool processInput() {
     atConfig.t_set--;
   }
   if (justPressed(ARCADA_BUTTONMASK_RIGHT)) { // UP (due to rotated screen)
-    if (atConfig.dim) {
-      atConfig.dim = false;
-    } else if (atConfig.lcd_brightness < BR_SIZE - 1) {
-      atConfig.lcd_brightness++;
-      atConfig.lcd_auto = false;
-    } else {
-      atConfig.lcd_auto = true;
-    }
+    lcd_brightness_up();
   }
   if (justPressed(ARCADA_BUTTONMASK_LEFT)) { // DOWN (due to rotated screen)
-    if (! atConfig.dim) {
-      atConfig.dim = true;
-    } else if (atConfig.lcd_brightness > 0) {
-      atConfig.lcd_brightness--;
-      if (atConfig.lcd_auto && atConfig.lcd_brightness > 0) {
-        atConfig.lcd_brightness--;
-      }
-      atConfig.lcd_auto = false;
-    } else {
-      atConfig.lcd_auto = true;
-    }
+    lcd_brightness_down();
   }
   if (justPressed(ARCADA_BUTTONMASK_DOWN)) { // RIGHT (due to rotated screen)
-    if (atConfig.led_brightness < LBR_SIZE - 1) {
-      atConfig.led_brightness++;
-      atConfig.led_auto = false;
-    } else {
-      atConfig.led_auto = true;
-    }
+    led_brightness_up();
   }
   if (justPressed(ARCADA_BUTTONMASK_UP)) { // LEFT(due to rotated screen)
-    if (atConfig.led_brightness > 0) {
-      atConfig.led_brightness--;
-      atConfig.led_auto = false;
-    } else {
-      atConfig.led_auto = true;
-    }
+    led_brightness_down();
   }
   return arcada.justPressedButtons();
 }
