@@ -2,7 +2,7 @@
 #include "AverageTemp.h"
 
 // DEBUG flag -> wait for Serial
-#define DEBUG 1
+#define DEBUG 0
 
 //---- arcada ----
 Adafruit_Arcada arcada; // cp437
@@ -58,6 +58,8 @@ void setup() {
     Serial.print("Failed to begin");
     while (1);
   }
+  arcada.filesysBeginMSD();
+
   atConfig.load();
   display_init();
   measure_init();

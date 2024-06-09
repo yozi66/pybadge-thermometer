@@ -38,7 +38,7 @@ void ATConfig::profile_down() {
 void ATConfig::save(const char *filename) {
   File file;
   if (arcada.exists(filename)) {
-    Serial.println("file exists, write?");
+    Serial.println("file exists, truncating");
     file = arcada.open(filename, O_WRITE | O_TRUNC);
   } else {
     Serial.println("creating config file");
@@ -46,16 +46,30 @@ void ATConfig::save(const char *filename) {
   }
   if (!file) {
     Serial.println(F("Failed to open file to write"));
+    arcada.errorBox("Save error");
     arcada.display->fillScreen(ARCADA_BLACK);
     return;
   }
   file.printf("%d\n", profile);
+  profiles[profile].t_set = t_set;
+  profiles[profile].time_interval = time_interval;
+  profiles[profile].lcd_brightness = lcd_brightness;
+  profiles[profile].lcd_auto = lcd_auto;
+  profiles[profile].dim = dim;
+  profiles[profile].led_brightness = led_brightness;
+  profiles[profile].led_auto = led_auto;
+  profiles[profile].sound = sound;
+  profiles[profile].countdown = countdown;
   for (int i = 0; i < NUM_PROFILES; i++) {
     ATSimpleConfig & config = profiles[i];
     file.printf("%d %d %d ", config.t_set, config.time_interval, config.lcd_brightness);
     file.printf("%d %d %d ", config.lcd_auto, config.dim, config.led_brightness);
     file.printf("%d %d %d\n", config.led_auto, config.sound, config.countdown);
+    file.printf("t_set time_interval lcd_brightness\n");
+    file.printf("lcd_auto dim led_brightness\n");
+    file.printf("led_auto sound countdown\n");
   }
+  file.flush();
   file.close();
 }
 
@@ -145,15 +159,5 @@ void ATConfig::load(const char *filename) {
     createDefaultConfig();
   }
   Serial.printf("profile: %d\n", profile);
-  t_set = profiles[profile].t_set;
-  time_interval = profiles[profile].time_interval;
-  lcd_brightness = profiles[profile].lcd_brightness;
-  Serial.printf("lcd_auto: %d\n", profiles[profile].lcd_auto);
-  lcd_auto = profiles[profile].lcd_auto;
-  Serial.printf("lcd_auto: %d\n", lcd_auto);
-  dim = profiles[profile].dim;
-  led_brightness = profiles[profile].led_brightness;
-  led_auto = profiles[profile].led_auto;
-  sound = profiles[profile].sound;
-  countdown = profiles[profile].countdown;
+  loadCurrentProfile();
 }
