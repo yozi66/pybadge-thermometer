@@ -1,7 +1,7 @@
 #include "ATConfig.h"
 #include "arcada_thermometer.h"
 
-const char *profiles[NUM_PROFILES] = {"  Home", "Winter", "Sommer", " Other"};
+const char *profiles[NUM_PROFILES] = {"  home", "winter", "sommer", " other"};
 
 int ATConfig::getProfile() {
     return profile;

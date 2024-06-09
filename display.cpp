@@ -173,13 +173,13 @@ void updateDisplay() {
 
   // light sensor
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
-  arcada.display->setCursor(light > 9999 ? 0 : 6, 128);
+  arcada.display->setCursor(light > 9999 ? 0 : 6, 132);
   arcada.display->printf("%-4d", light);
 
   // current profile
   color = menuSelected == MENU_PROFILE ? ARCADA_YELLOW : ARCADA_GREEN;
   arcada.display->setTextColor(color, ARCADA_BLACK);
-  arcada.display->setCursor(90, 128);
+  arcada.display->setCursor(90, 132);
   arcada.display->print(profiles[atConfig.getProfile()]);
 
   // countdown time_interval
