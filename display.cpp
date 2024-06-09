@@ -3,18 +3,6 @@
 #include "AverageTemp.h"
 #include "arcada_thermometer.h"
 
-//---- menu ----
-#define MENU_OFF -1
-#define MENU_SAVE 0
-#define MENU_PROFILE 1
-#define MENU_LED 2
-#define MENU_SIZE 3
-
-#define MENU_TIME 10
-
-int menuSelected = MENU_OFF;
-int menuCountdown = MENU_TIME;
-
 //---- brightness ----
 
 int brightness_table[BR_SIZE] = {1,  4,  16,  64,   255};

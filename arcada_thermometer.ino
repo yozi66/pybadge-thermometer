@@ -17,6 +17,10 @@ int intervals[INTERVALS_SIZE] = {10, 30, 60, 120, 300};
 AverageTemp avgTemp;
 float tempChange;
 
+//---- menu ----
+int menuSelected = MENU_OFF;
+volatile int menuCountdown = 0;
+
 //---- settings ----
 ATConfig atConfig;
 
@@ -37,6 +41,9 @@ void timercallback() {
   }
   if (bellCountdown > 0) {
     bellCountdown--;
+  }
+  if (menuCountdown > 0) {
+    menuCountdown--;
   }
   analogWrite(13, 1); // weak red light on the LED
   measure = true;
@@ -64,13 +71,13 @@ void setup() {
 
 //---- loop ----
 void loop() {
-  bool update_data = false;
   if (measure) {
     measureTemperature();
     measureVoltage();
     measureLight();
     measure = false;
     processInput();
+    updateMenu(); // check menuCountdown
     updateDisplay();
     int count = updatePixels(); // update LEDs
     beepIfNeeded(count);
