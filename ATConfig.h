@@ -38,7 +38,7 @@ private:
 
   void createDefaultConfig();
   bool readConfig(const char *filename);
-  void readProfile(File file, int index);
+  void readProfile(File & file, ATSimpleConfig & toConfig);
   void loadCurrentProfile();
 };
 

@@ -156,25 +156,18 @@ void led_brightness_down() {
   }
 }
 
-void updateMenu() {
-  if (menuSelected != MENU_OFF && menuCountdown == 0) {
-    atConfig.save();
-    menuSelected = MENU_OFF;
-  }
-}
-
 void menu_activate() {
   if (menuSelected == MENU_OFF) {
     menuSelected = MENU_PROFILE;
   }
-  menuCountdown = MENU_TIME;
 }
 
 void menuitem_up() {
-  if (menuSelected > 0) {
+  if (menuSelected == MENU_OFF) {
+    menu_activate();
+  } else {
     menuSelected--;
   }
-  menu_activate();
 }
 
 void menuitem_down() {
@@ -193,7 +186,6 @@ void menuvalue_up() {
   case MENU_SAVE:
     atConfig.save(); // up = do save now
     menuSelected = MENU_OFF;
-    menuCountdown = 0;
     return; // do not menu_activate()
   case MENU_PROFILE:
     atConfig.profile_up();
@@ -208,15 +200,13 @@ void menuvalue_up() {
 }
 
 void menuvalue_down() {
-  switch (menuSelected)
-  {
+  switch (menuSelected) {
   case MENU_OFF:
     lcd_brightness_down();
     return; // do not menu_activate()
   case MENU_SAVE:
-    // down = do not save
+    atConfig.load();
     menuSelected = MENU_OFF;
-    menuCountdown = 0;
     return; // do not menu_activate()
   case MENU_PROFILE:
     atConfig.profile_down();

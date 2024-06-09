@@ -78,8 +78,8 @@ void ATConfig::createDefaultConfig() {
     profile = 0;
     // home
     profiles[0].t_set = 40;
-    profiles[0].time_interval = 2;
-    profiles[0].lcd_brightness = 2;
+    profiles[0].time_interval = 4;
+    profiles[0].lcd_brightness = 1;
     profiles[0].lcd_auto = true;
     profiles[0].dim = true;
     profiles[0].led_brightness = 0;
@@ -98,16 +98,16 @@ void ATConfig::createDefaultConfig() {
     profiles[1].countdown = true;
     // sommer
     profiles[2].t_set = 50;
-    profiles[2].time_interval = 2;
+    profiles[2].time_interval = 4;
     profiles[2].lcd_brightness = 2;
     profiles[2].lcd_auto = true;
     profiles[2].dim = false;
     profiles[2].led_brightness = 3;
     profiles[2].led_auto = true;
-    profiles[2].sound = false;
+    profiles[2].sound = true;
     profiles[2].countdown = true;
     // other
-    profiles[3].t_set = 60;
+    profiles[3].t_set = 55;
     profiles[3].time_interval = 3;
     profiles[3].lcd_brightness = 2;
     profiles[3].lcd_auto = true;
@@ -120,16 +120,19 @@ void ATConfig::createDefaultConfig() {
     Serial.println("Created default config object.");
 } 
 
-void ATConfig::readProfile(File file, int i) {
-    profiles[i].t_set = (int) file.parseInt();
-    profiles[i].time_interval = (int) file.parseInt();
-    profiles[i].lcd_brightness = (int) file.parseInt();
-    profiles[i].lcd_auto = (int) file.parseInt() > 0;
-    profiles[i].dim = (int) file.parseInt() > 0;
-    profiles[i].led_brightness = (int) file.parseInt();
-    profiles[i].led_auto = (int) file.parseInt() > 0;
-    profiles[i].sound = (int) file.parseInt() > 0;
-    profiles[i].countdown = (int) file.parseInt() > 0;
+void ATConfig::readProfile(File & file, ATSimpleConfig & toConfig) {
+    Serial.println("Reading profile");
+    toConfig.t_set = (int) file.parseInt();
+    toConfig.time_interval = (int) file.parseInt();
+    toConfig.lcd_brightness = (int) file.parseInt();
+    toConfig.lcd_auto = (int) file.parseInt() > 0;
+    toConfig.dim = (int) file.parseInt() > 0;
+    toConfig.led_brightness = (int) file.parseInt();
+    toConfig.led_auto = (int) file.parseInt() > 0;
+    toConfig.sound = (int) file.parseInt() > 0;
+    toConfig.countdown = (int) file.parseInt() > 0;
+    Serial.printf("t_set:%d, time_int:%d, lcd:%d\n", 
+      toConfig.t_set, toConfig.time_interval, toConfig.lcd_brightness);
 }
 
 bool ATConfig::readConfig(const char * filename) {
@@ -145,16 +148,17 @@ bool ATConfig::readConfig(const char * filename) {
   }
   profile = (int) file.parseInt();
   for (int i = 0; i < NUM_PROFILES; i++) {
-    readProfile(file, i);
+    readProfile(file, profiles[i]);
   }
   uint8_t error = file.getError();
+  Serial.printf("Error code: %d\n", error);
   file.close();
   return error == 0;
 }
 
 void ATConfig::load(const char *filename) {
   bool success = readConfig(filename);
-  Serial.printf("Success: %d\n", success);
+  Serial.printf("Load success: %d\n", success);
   if (! success) {
     createDefaultConfig();
   }

@@ -156,20 +156,12 @@ void updateDisplay() {
   }
   arcada.display->setTextSize(1);
 
-  // save button
+  // load/save button
   color = menuSelected == MENU_SAVE ? ARCADA_YELLOW : ARCADA_GREEN;
   arcada.display->setTextColor(color, ARCADA_BLACK);
-  arcada.display->setCursor(84, 116);
-  const char * text = menuSelected == MENU_OFF ? "    " : "SAVE";
+  arcada.display->setCursor(68, 116);
+  const char * text = menuSelected == MENU_OFF ? "         " : "LOAD/SAVE";
   arcada.display->print(text);
-
-  // save countdown
-  arcada.display->setCursor(108, 116);
-  if (menuCountdown <= 0) {
-    arcada.display->print("   ");
-  } else {
-    arcada.display->printf("%3d", menuCountdown);
-  }
 
   // light sensor
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
