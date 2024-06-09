@@ -36,10 +36,16 @@ void ATConfig::profile_down() {
 }
 
 void ATConfig::save(const char *filename) {
-  File file = arcada.open(filename, O_WRITE);
+  File file;
+  if (arcada.exists(filename)) {
+    Serial.println("file exists, write?");
+    file = arcada.open(filename, O_WRITE | O_TRUNC);
+  } else {
+    Serial.println("creating config file");
+    file = arcada.open(filename, O_WRITE | O_CREAT);
+  }
   if (!file) {
-    Serial.println(F("Failed to open file"));
-    arcada.errorBox("Save error");
+    Serial.println(F("Failed to open file to write"));
     arcada.display->fillScreen(ARCADA_BLACK);
     return;
   }
@@ -113,9 +119,14 @@ void ATConfig::readProfile(File file, int i) {
 }
 
 bool ATConfig::readConfig(const char * filename) {
+  if (! arcada.exists(filename)) {
+    Serial.print(filename);
+    Serial.println(F(" does not exist"));
+    return false;
+  }
   File file = arcada.open(filename);
   if (!file) {
-    Serial.println(F("Failed to open file"));
+    Serial.println(F("Failed to open file to read"));
     return false;
   }
   profile = (int) file.parseInt();
