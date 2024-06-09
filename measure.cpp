@@ -182,5 +182,5 @@ bool processInput() {
   if (justPressed(ARCADA_BUTTONMASK_UP)) { // LEFT(due to rotated screen)
     led_brightness_down();
   }
-  return arcada.justPressedButtons();
+  return buttons;
 }
