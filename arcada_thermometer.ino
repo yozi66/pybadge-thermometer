@@ -1,8 +1,5 @@
-#include <Adafruit_Arcada.h>
-#include "AverageTemp.h"
-#include "ATConfig.h"
-
 #include "arcada_thermometer.h"
+#include "AverageTemp.h"
 
 // DEBUG flag -> wait for Serial
 #define DEBUG 0

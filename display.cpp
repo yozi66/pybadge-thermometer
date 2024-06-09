@@ -108,6 +108,7 @@ void drawBattery(float vbat) {
 
 //---- updateDisplay ----
 void updateDisplay() {
+  uint16_t color;
   int brite = atConfig.lcd_brightness;
   if (atConfig.lcd_auto && atConfig.dim && brite > 0) {
     brite--;
@@ -130,16 +131,45 @@ void updateDisplay() {
   arcada.display->setCursor(42, 14);
   arcada.display->printf("%7.2f", avgTemp.temp_curr);
 
+  // average temperature
+  arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
+  printTemperature();
+
+  // change countdown
+  arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
+  arcada.display->setCursor(100, 80);
+  if (changeCountdown < 0) {
+    arcada.display->print("   ");
+  } else {
+    arcada.display->printf("%3d", changeCountdown);
+  }
+
   // bell countdown
   arcada.display->setCursor(48, 96);
   arcada.display->setTextSize(2);
   if (bellCountdown < 0 || ! atConfig.countdown) {
     arcada.display->print("   ");
   } else {
-    arcada.display->setTextColor(ARCADA_YELLOW, ARCADA_BLACK);
+    color = menuSelected == MENU_OFF ? ARCADA_YELLOW : ARCADA_GREEN;
+    arcada.display->setTextColor(color, ARCADA_BLACK);
     arcada.display->printf("%3d", bellCountdown);
   }
   arcada.display->setTextSize(1);
+
+  // save button
+  color = menuSelected == MENU_SAVE ? ARCADA_YELLOW : ARCADA_GREEN;
+  arcada.display->setTextColor(color, ARCADA_BLACK);
+  arcada.display->setCursor(84, 116);
+  const char * text = menuSelected == MENU_OFF ? "    " : "SAVE";
+  arcada.display->print(text);
+
+  // save countdown
+  arcada.display->setCursor(108, 116);
+  if (menuCountdown <= 0) {
+    arcada.display->print("   ");
+  } else {
+    arcada.display->printf("%3d", menuCountdown);
+  }
 
   // light sensor
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
@@ -147,30 +177,25 @@ void updateDisplay() {
   arcada.display->printf("%-4d", light);
 
   // current profile
-  arcada.display->setTextColor(ARCADA_DARKGREEN, ARCADA_BLACK);
-  arcada.display->setCursor(42, 128);
+  color = menuSelected == MENU_PROFILE ? ARCADA_YELLOW : ARCADA_GREEN;
+  arcada.display->setTextColor(color, ARCADA_BLACK);
+  arcada.display->setCursor(90, 128);
   arcada.display->print(profiles[atConfig.getProfile()]);
 
-  // change countdown
-  arcada.display->setCursor(108, 128);
-  arcada.display->setTextSize(1);
-  if (changeCountdown < 0) {
-    arcada.display->print("   ");
-  } else {
-    arcada.display->printf("%3d", changeCountdown);
-  }
-
-  // last row
-  arcada.display->setTextColor(atConfig.countdown ? ARCADA_GREEN : ARCADA_DARKGREEN, ARCADA_BLACK);
+  // countdown time_interval
+  color = atConfig.countdown ? ARCADA_GREEN : ARCADA_DARKGREEN;
+  arcada.display->setTextColor(color, ARCADA_BLACK);
   arcada.display->setCursor(0, 148);
   arcada.display->printf("%3ds", intervals[atConfig.time_interval]);
+
+  // lcd_brightness
   arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
   arcada.display->setCursor(40, 148);
   arcada.display->printf("lcd:%1d%c", atConfig.lcd_brightness + (atConfig.dim && atConfig.lcd_auto ? 0 : 1), atConfig.lcd_auto ? atConfig.dim ? 'd' : 'A' : ' ');
+
+  // LED brightness
+  color = menuSelected == MENU_LED ? ARCADA_YELLOW : ARCADA_GREEN;
+  arcada.display->setTextColor(color, ARCADA_BLACK);
   arcada.display->setCursor(90, 148);
   arcada.display->printf("led:%1d%c", atConfig.led_brightness, atConfig.led_auto ? 'A' : ' ');
-
-  // average temperature
-  arcada.display->setTextColor(ARCADA_GREEN, ARCADA_BLACK);
-  printTemperature();
 }

@@ -157,25 +157,77 @@ void led_brightness_down() {
 }
 
 void updateMenu() {
-  if (menuCountdown == 0) {
+  if (menuSelected != MENU_OFF && menuCountdown == 0) {
+    atConfig.save();
     menuSelected = MENU_OFF;
   }
 }
 
-void menu_item_up() {
-  lcd_brightness_up();
+void menu_activate() {
+  if (menuSelected == MENU_OFF) {
+    menuSelected = MENU_PROFILE;
+  }
+  menuCountdown = MENU_TIME;
 }
 
-void menu_item_down() {
-    lcd_brightness_down();
+void menuitem_up() {
+  if (menuSelected > 0) {
+    menuSelected--;
+  }
+  menu_activate();
 }
 
-void menu_value_up() {
+void menuitem_down() {
+  if (menuSelected < MENU_SIZE - 1) {
+    menuSelected++;
+  }
+  menu_activate();
+}
+
+void menuvalue_up() {
+  switch (menuSelected)
+  {
+  case MENU_OFF:
+    lcd_brightness_up();
+    break;
+  case MENU_SAVE:
+    atConfig.save(); // up = do save now
+    menuSelected = MENU_OFF;
+    menuCountdown = 0;
+    return; // do not menu_activate()
+  case MENU_PROFILE:
+    atConfig.profile_up();
+    break;
+  case MENU_LED:
     led_brightness_up();
+    break;
+  default:
+    break;
+  }
+  menu_activate();
 }
 
-void menu_value_down() {
+void menuvalue_down() {
+  switch (menuSelected)
+  {
+  case MENU_OFF:
+    lcd_brightness_down();
+    break;
+  case MENU_SAVE:
+    // down = do not save
+    menuSelected = MENU_OFF;
+    menuCountdown = 0;
+    return; // do not menu_activate()
+  case MENU_PROFILE:
+    atConfig.profile_down();
+    break;
+  case MENU_LED:
     led_brightness_down();
+    break;
+  default:
+    break;
+  }
+  menu_activate();
 }
 
 bool processInput() {
@@ -193,16 +245,16 @@ bool processInput() {
     atConfig.t_set--;
   }
   if (justPressed(ARCADA_BUTTONMASK_RIGHT)) { // UP (due to rotated screen)
-    menu_item_up();
+    menuitem_up();
   }
   if (justPressed(ARCADA_BUTTONMASK_LEFT)) { // DOWN (due to rotated screen)
-    menu_item_down();
+    menuitem_down();
   }
   if (justPressed(ARCADA_BUTTONMASK_DOWN)) { // RIGHT (due to rotated screen)
-    menu_value_up();
+    menuvalue_up();
   }
   if (justPressed(ARCADA_BUTTONMASK_UP)) { // LEFT(due to rotated screen)
-    menu_value_down();
+    menuvalue_down();
   }
   return buttons;
 }

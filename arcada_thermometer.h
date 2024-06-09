@@ -1,7 +1,9 @@
 #ifndef ARCADA_THERMOMETER
 #define ARCADA_THERMOMETER
 
+#include <Adafruit_Arcada.h>
 #include "ATConfig.h"
+#include "AverageTemp.h"
 
 //---- arcada ----
 extern Adafruit_Arcada arcada; // cp437

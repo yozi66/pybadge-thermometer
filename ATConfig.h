@@ -20,6 +20,9 @@ public:
   bool sound = true;
   bool countdown = true;
   int getProfile();
+  void profile_up();
+  void profile_down();
+  void save();
 private:
   int profile = 0;
   StaticJsonDocument<256> pbt_configJSON;
